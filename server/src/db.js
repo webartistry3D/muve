@@ -1,0 +1,55 @@
+import Database from 'better-sqlite3';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const db = new Database(path.join(__dirname, '..', 'zber.db'));
+db.pragma('journal_mode = WAL');
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL CHECK(role IN ('rider','driver')),
+  is_sim INTEGER NOT NULL DEFAULT 0,
+  rating_sum REAL NOT NULL DEFAULT 0,
+  rating_count INTEGER NOT NULL DEFAULT 0,
+  vehicle_make TEXT, vehicle_model TEXT, vehicle_plate TEXT, vehicle_color TEXT,
+  vehicle_tier TEXT DEFAULT 'zberx',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS rides (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  rider_id INTEGER NOT NULL REFERENCES users(id),
+  driver_id INTEGER REFERENCES users(id),
+  status TEXT NOT NULL DEFAULT 'requested',
+  tier TEXT NOT NULL,
+  pickup_lat REAL NOT NULL, pickup_lng REAL NOT NULL, pickup_addr TEXT,
+  drop_lat REAL NOT NULL, drop_lng REAL NOT NULL, drop_addr TEXT,
+  distance_m REAL NOT NULL DEFAULT 0,
+  duration_s REAL NOT NULL DEFAULT 0,
+  fare REAL NOT NULL DEFAULT 0,
+  surge REAL NOT NULL DEFAULT 1,
+  tip REAL NOT NULL DEFAULT 0,
+  rating INTEGER,
+  payment_method TEXT DEFAULT 'Cash',
+  route_json TEXT,
+  cancelled_by TEXT,
+  requested_at TEXT NOT NULL DEFAULT (datetime('now')),
+  accepted_at TEXT, arrived_at TEXT, started_at TEXT, completed_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS payment_methods (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  brand TEXT NOT NULL,
+  last4 TEXT NOT NULL,
+  label TEXT,
+  is_default INTEGER NOT NULL DEFAULT 0
+);
+`);
+
+export default db;
