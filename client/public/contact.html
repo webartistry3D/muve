@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>muve — Contact Us</title>
+  <meta name="description" content="Get in touch with the muve team — questions, partnerships, driver onboarding, or feedback." />
+  <meta name="theme-color" content="#F4F1EC" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='black'/><text x='50' y='72' font-size='64' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-weight='bold'>m</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="index.html" class="brand">
+      <span class="brand__mark">m</span>
+      muve
+    </a>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="contact.html" class="active">Contact</a>
+      <a href="/app" class="nav-cta">Ride now</a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="page-hero">
+    <div class="page-hero__eyebrow">Contact muve</div>
+    <h1 class="page-hero__title">Let's talk.</h1>
+    <p class="page-hero__subtitle">
+      Questions about riding, driver onboarding, partnerships, or feedback?
+      We'd love to hear from you. Reach out through any channel below.
+    </p>
+  </section>
+
+  <!-- Contact grid -->
+  <section class="section section--wide">
+    <div class="contact-grid">
+
+      <!-- Left: contact info -->
+      <div class="contact-info">
+        <h2 style="margin-bottom: 24px;">Reach us directly</h2>
+
+        <div class="contact-info__item">
+          <div class="contact-info__icon">📧</div>
+          <div>
+            <div class="contact-info__label">Email</div>
+            <div class="contact-info__value"><a href="mailto:hello@muve.app">hello@muve.app</a></div>
+          </div>
+        </div>
+
+        <div class="contact-info__item">
+          <div class="contact-info__icon">📞</div>
+          <div>
+            <div class="contact-info__label">Phone / WhatsApp</div>
+            <div class="contact-info__value"><a href="tel:+2348000000000">+234 800 000 0000</a></div>
+          </div>
+        </div>
+
+        <div class="contact-info__item">
+          <div class="contact-info__icon">📍</div>
+          <div>
+            <div class="contact-info__label">Office</div>
+            <div class="contact-info__value">Lagos, Nigeria</div>
+          </div>
+        </div>
+
+        <div class="contact-info__item">
+          <div class="contact-info__icon">💻</div>
+          <div>
+            <div class="contact-info__label">GitHub</div>
+            <div class="contact-info__value"><a href="https://github.com/xSwaraJx/muve">github.com/xSwaraJx/muve</a></div>
+          </div>
+        </div>
+
+        <div class="contact-info__item">
+          <div class="contact-info__icon">🚗</div>
+          <div>
+            <div class="contact-info__label">Driver onboarding</div>
+            <div class="contact-info__value"><a href="mailto:drivers@muve.app">drivers@muve.app</a></div>
+          </div>
+        </div>
+
+        <div class="contact-info__item">
+          <div class="contact-info__icon">🤝</div>
+          <div>
+            <div class="contact-info__label">Partnerships</div>
+            <div class="contact-info__value"><a href="mailto:partners@muve.app">partners@muve.app</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: contact form -->
+      <div>
+        <h2 style="margin-bottom: 24px;">Send us a message</h2>
+        <form class="contact-form" id="contactForm">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="name">Name</label>
+              <input type="text" id="name" name="name" placeholder="Your name" required />
+            </div>
+            <div class="form-field">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="you@email.com" required />
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="subject">Subject</label>
+            <select id="subject" name="subject">
+              <option value="general">General inquiry</option>
+              <option value="ride">Ride feedback / issue</option>
+              <option value="driver">I want to drive for muve</option>
+              <option value="partnership">Partnership opportunity</option>
+              <option value="press">Press / media</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" placeholder="Tell us what's on your mind..." required></textarea>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submitBtn">Send message →</button>
+
+          <div class="form-success" id="formSuccess">
+            ✓ Thanks! Your message has been sent. We'll get back to you within 24 hours.
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section">
+    <h2>Frequently asked</h2>
+
+    <div class="value-card" style="margin-bottom: 16px;">
+      <h3>How do I start riding?</h3>
+      <p>Go to <a href="/app" style="color: var(--accent); font-weight: 600;">the muve app</a>, sign up as a rider, set your pickup and destination, pick a tier, and request. A driver will be matched and on the way in seconds.</p>
+    </div>
+
+    <div class="value-card" style="margin-bottom: 16px;">
+      <h3>How do I become a driver?</h3>
+      <p>Sign up as a driver on the platform, enter your vehicle details (make, model, plate, color), and tap GO to go online. You'll receive ride offers with a 15-second accept window. Email <a href="mailto:drivers@muve.app" style="color: var(--accent); font-weight: 600;">drivers@muve.app</a> for onboarding support.</p>
+    </div>
+
+    <div class="value-card" style="margin-bottom: 16px;">
+      <h3>Is muve available outside Lagos?</h3>
+      <p>The demo currently defaults to Lagos, but the platform works anywhere with OpenStreetMap coverage. The architecture is location-agnostic — expanding to other cities is a configuration change, not a rebuild.</p>
+    </div>
+
+    <div class="value-card" style="margin-bottom: 16px;">
+      <h3>How are fares calculated?</h3>
+      <p>Base fare + (distance × per-km rate) + (time × per-min rate), multiplied by surge if active. All rates are in Naira and shown before you request. MuveX starts at ₦500 minimum, MuveXL at ₦800, Muve Black at ₦1,500.</p>
+    </div>
+
+    <div class="value-card">
+      <h3>Is my data safe?</h3>
+      <p>Passwords are hashed with bcrypt. Authentication uses JWT tokens stored locally. The code is open source — you can inspect exactly how your data is handled at <a href="https://github.com/xSwaraJx/muve" style="color: var(--accent); font-weight: 600;">github.com/xSwaraJx/muve</a>.</p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-banner">
+    <h2>Still have questions?</h2>
+    <p>Try the app first — the fastest way to understand muve is to ride it.</p>
+    <a href="/app" class="btn-submit">Ride now →</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" style="width:24px;height:24px;font-size:0.7rem;">m</span>
+        muve
+      </div>
+      <div class="footer__links">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="https://github.com/xSwaraJx/muve">GitHub</a>
+      </div>
+      <div class="footer__copy">© 2026 muve. Built for Nigeria. MIT licensed.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Simple form handler — no backend, just shows success
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var success = document.getElementById('formSuccess');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      // Simulate send (wire to real backend/email service when ready)
+      setTimeout(function() {
+        btn.style.display = 'none';
+        success.classList.add('show');
+      }, 800);
+    });
+
+
+</body>
+</html>

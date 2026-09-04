@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>muve — Get there</title>
+  <meta name="description" content="Scroll to fly through the world of muve — a real-time ride-hailing platform built for Nigeria. From request to arrival, one continuous flight." />
+  <meta name="theme-color" content="#F4F1EC" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="muve" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='black'/><text x='50' y='72' font-size='64' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-weight='bold'>m</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* Theme the engine — matches the generated scenes' background + Muve brand kit */
+    :root, .sw-root {
+      --sw-bg: #F4F1EC;            /* == the scene background colour (cream) */
+      --sw-ink: #1A1A1F;           /* charcoal — primary text */
+      --sw-ink-soft: #6B6B6B;      /* secondary text */
+      --sw-accent: #0E8345;        /* signal green — default accent */
+      --sw-font-display: "Inter", ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+      --sw-font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+      --sw-font-mono: "JetBrains Mono", ui-monospace, Menlo, "Cascadia Code", "Courier New", monospace;
+    }
+  </style>
+</head>
+<body>
+  <div id="top"></div>
+  <div id="world"></div>
+
+  <script src="scrub-engine.js"></script>
+  <script>
+    mountScrollWorld(document.getElementById('world'), {
+      brand: { name: 'muve', href: '#top' },
+      cta: { label: 'Ride now', href: '/app' },
+      hint: 'scroll to fly in',
+      diveScroll: 1.3,
+      connScroll: 0.9,
+
+      sections: [
+        {
+          id: 'city', label: 'The City',
+          still: 'assets/city.webp',
+          clip: 'assets/vid/city.mp4',
+          clipMobile: 'assets/vid/city-m.mp4',
+          stillMobile: 'assets/city-m.webp',
+          accent: '#FFB84D',
+          scroll: 1.6, linger: 0.4,
+          eyebrow: 'A city in motion',
+          title: 'Every Lagos street is a journey.',
+          body: 'From the first light of dawn, a miniature world wakes up - danfo buses, market stalls, and product vendors ready to move.',
+          tags: ['Real-time', 'Live GPS', 'Road-routing'],
+        },
+        {
+          id: 'request', label: 'The Request',
+          still: 'assets/request.webp',
+          clip: 'assets/vid/request.mp4',
+          clipMobile: 'assets/vid/request-m.mp4',
+          stillMobile: 'assets/request-m.webp',
+          accent: '#0E8345',
+          scroll: 1.3, linger: 0.35,
+          eyebrow: 'Tap. Where to?',
+          title: 'It starts with a pin.',
+          body: 'Set your pickup, drop a destination, and the city starts listening. One tap is all it takes.',
+          tags: ['Address search', 'Tap-to-set', 'Instant estimate'],
+        },
+        {
+          id: 'match', label: 'The Match',
+          still: 'assets/match.webp',
+          clip: 'assets/vid/match.mp4',
+          clipMobile: 'assets/vid/match-m.mp4',
+          stillMobile: 'assets/match-m.webp',
+          accent: '#0E8345',
+          scroll: 1.3, linger: 0.35,
+          eyebrow: 'Behind the scenes',
+          title: 'The network finds your driver.',
+          body: 'Pulses of light race across the city — the matching engine offers your ride to the nearest driver, cascading until someone accepts.',
+          tags: ['Nearest-driver', 'Timeout cascade', 'WebSocket live'],
+        },
+        {
+          id: 'driver', label: 'The Driver',
+          still: 'assets/driver.webp',
+          clip: 'assets/vid/driver.mp4',
+          clipMobile: 'assets/vid/driver-m.mp4',
+          stillMobile: 'assets/driver-m.webp',
+          accent: '#FFB84D',
+          scroll: 1.3, linger: 0.35,
+          eyebrow: 'Supply meets demand',
+          title: 'Your driver is on the way.',
+          body: 'A notification, a door opens, headlights flick on. Trusted drivers on real Lagos roads — GPS streaming to your map every second.',
+          tags: ['1Hz GPS stream', '15s accept timer', 'Ratings & tips'],
+        },
+        {
+          id: 'ride', label: 'The Ride',
+          still: 'assets/ride.webp',
+          clip: 'assets/vid/ride.mp4',
+          clipMobile: 'assets/vid/ride-m.mp4',
+          stillMobile: 'assets/ride-m.webp',
+          accent: '#C5564A',
+          scroll: 1.4, linger: 0.4,
+          eyebrow: 'Three ways to get there',
+          title: 'MuveX. XL. Black.',
+          body: 'Affordable everyday rides, extra room for groups, or premium top drivers. Fares in Naira with live estimates and dynamic surge pricing.',
+          tags: ['MuveX', 'MuveXL', 'Muve Black'],
+        },
+        {
+          id: 'arrival', label: 'Arrival',
+          still: 'assets/arrival.webp',
+          clip: 'assets/vid/arrival.mp4',
+          clipMobile: 'assets/vid/arrival-m.mp4',
+          stillMobile: 'assets/arrival-m.webp',
+          accent: '#0E8345',
+          scroll: 1.6, linger: 0.45,
+          eyebrow: 'You made it',
+          title: 'Get there. With muve.',
+          body: 'Pull up, step out, rate your driver. A full-stack, real-time ride-hailing platform built for Nigeria — end to end.',
+          tags: ['Full-stack', 'PWA installable', 'Open source'],
+          cta: {
+            primary: { label: 'Ride now', href: '/app' },
+            secondary: { label: 'View on GitHub', href: 'https://github.com/xSwaraJx/muve' },
+          },
+        },
+      ],
+
+      // Desktop connectors — length = sections.length - 1, in order.
+      // Generated per RENDER-GUIDE.md (extract actual rendered frames, never the stills).
+      connectors: [
+        'assets/vid/conn1.mp4',
+        'assets/vid/conn2.mp4',
+        'assets/vid/conn3.mp4',
+        'assets/vid/conn4.mp4',
+        'assets/vid/conn5.mp4',
+      ],
+
+      // Mobile connectors — native 9:16 portrait renders, same length/order.
+      connectorsMobile: [
+        'assets/vid/conn1-m.mp4',
+        'assets/vid/conn2-m.mp4',
+        'assets/vid/conn3-m.mp4',
+        'assets/vid/conn4-m.mp4',
+        'assets/vid/conn5-m.mp4',
+      ],
+    });
+
+    // Inject About / Contact links into the engine's topbar (after the section nav, before CTA)
+    (function() {
+      var topbar = document.querySelector('.sw-topbar');
+      if (!topbar) return;
+      var links = document.createElement('div');
+      links.className = 'sw-toplinks';
+      links.innerHTML =
+        '<a href="about.html" class="sw-toplinks__a">About</a>' +
+        '<a href="contact.html" class="sw-toplinks__a">Contact</a>';
+      // Insert after the section nav (sw-nav), before the CTA button
+      var cta = topbar.querySelector('.sw-topcta');
+      if (cta) topbar.insertBefore(links, cta);
+      else topbar.appendChild(links);
+    })();
+  </script>
+</body>
+</html>

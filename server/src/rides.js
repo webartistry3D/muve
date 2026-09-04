@@ -97,8 +97,8 @@ export function registerRideRoutes(app) {
       const d = drivers.get(ride.driver_id);
       if (d) d.status = 'idle';
     }
-    // $2 cancellation fee if a driver had already accepted (rider-cancelled)
-    const fee = isRider && ['accepted', 'arrived'].includes(ride.status) ? 2 : 0;
+    // ₦200 cancellation fee if a driver had already accepted (rider-cancelled)
+    const fee = isRider && ['accepted', 'arrived'].includes(ride.status) ? 200 : 0;
     const updated = updateRide(ride.id, {
       status: 'cancelled', cancelled_by: isRider ? 'rider' : 'driver', fare: fee,
     });

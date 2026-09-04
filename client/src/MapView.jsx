@@ -2,6 +2,11 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
+const TILES = {
+  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+};
+
 const icons = {
   pickup: () => L.divIcon({ className: '', html: '<div class="pin green"></div>', iconSize: [20, 20], iconAnchor: [10, 10] }),
   drop: () => L.divIcon({ className: '', html: '<div class="pin red"></div>', iconSize: [20, 20], iconAnchor: [10, 10] }),
@@ -13,9 +18,10 @@ const icons = {
   }),
 };
 
-export default function MapView({ center, markers = [], route = null, fitKey = null, onMapClick }) {
+export default function MapView({ center, markers = [], route = null, fitKey = null, onMapClick, theme = 'light' }) {
   const elRef = useRef(null);
   const mapRef = useRef(null);
+  const tileRef = useRef(null);
   const layerRef = useRef({ markers: new Map(), route: null });
   const clickRef = useRef(onMapClick);
   clickRef.current = onMapClick;
@@ -23,7 +29,7 @@ export default function MapView({ center, markers = [], route = null, fitKey = n
   useEffect(() => {
     const map = L.map(elRef.current, { zoomControl: false, attributionControl: false })
       .setView(center || [19.076, 72.8777], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    tileRef.current = L.tileLayer(TILES[theme] || TILES.light, {
       maxZoom: 19,
       subdomains: 'abcd',
     }).addTo(map);
@@ -33,6 +39,18 @@ export default function MapView({ center, markers = [], route = null, fitKey = n
     mapRef.current = map;
     return () => map.remove();
   }, []);
+
+  // Swap tile layer when theme changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !tileRef.current) return;
+    const oldTile = tileRef.current;
+    tileRef.current = L.tileLayer(TILES[theme] || TILES.light, {
+      maxZoom: 19,
+      subdomains: 'abcd',
+    }).addTo(map);
+    map.removeLayer(oldTile);
+  }, [theme]);
 
   // Recenter when center prop changes meaningfully
   useEffect(() => {
@@ -67,9 +85,10 @@ export default function MapView({ center, markers = [], route = null, fitKey = n
     if (!map) return;
     if (layerRef.current.route) { layerRef.current.route.remove(); layerRef.current.route = null; }
     if (route && route.length > 1) {
-      layerRef.current.route = L.polyline(route, { color: '#0b0b0b', weight: 4, opacity: 0.85 }).addTo(map);
+      const routeColor = theme === 'dark' ? '#f5f5f8' : '#0b0b0b';
+      layerRef.current.route = L.polyline(route, { color: routeColor, weight: 4, opacity: 0.85 }).addTo(map);
     }
-  }, [route]);
+  }, [route, theme]);
 
   // Fit bounds when fitKey changes
   useEffect(() => {

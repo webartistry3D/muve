@@ -4,7 +4,7 @@ import { api, setSession } from './api.js';
 export default function AuthPage({ onAuth }) {
   const [mode, setMode] = useState('login');
   const [role, setRole] = useState('rider');
-  const [form, setForm] = useState({ name: '', email: '', password: '', make: '', model: '', plate: '', color: '', tier: 'zberx' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', make: '', model: '', plate: '', color: '', tier: 'muvex' });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -35,7 +35,7 @@ export default function AuthPage({ onAuth }) {
 
   return (
     <div className="auth-wrap">
-      <div className="auth-logo">zber</div>
+      <div className="auth-logo">muve</div>
       <div className="auth-tag">Get there. Your day belongs to you.</div>
       <form className="auth-card" onSubmit={submit}>
         <h2>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h2>
@@ -65,9 +65,9 @@ export default function AuthPage({ onAuth }) {
             <div className="field">
               <label>Service tier</label>
               <select value={form.tier} onChange={set('tier')}>
-                <option value="zberx">ZberX</option>
-                <option value="zberxl">ZberXL</option>
-                <option value="black">Zber Black</option>
+                <option value="muvex">MuveX</option>
+                <option value="muvexl">MuveXL</option>
+                <option value="black">Muve Black</option>
               </select>
             </div>
           </>
@@ -77,7 +77,7 @@ export default function AuthPage({ onAuth }) {
           {busy ? 'One moment…' : mode === 'login' ? 'Log in' : 'Sign up'}
         </button>
         <p style={{ marginTop: 14, fontSize: 14, textAlign: 'center' }}>
-          {mode === 'login' ? "New to zber? " : 'Already have an account? '}
+          {mode === 'login' ? "New to muve? " : 'Already have an account? '}
           <button type="button" className="link-btn" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErr(''); }}>
             {mode === 'login' ? 'Sign up' : 'Log in'}
           </button>

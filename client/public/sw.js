@@ -1,6 +1,6 @@
 // Minimal network-first service worker: the app is realtime, so we never
 // serve stale API data — cache is only a fallback for the shell when offline.
-const CACHE = 'zber-v1';
+const CACHE = 'muve-v1';
 
 self.addEventListener('install', (e) => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));

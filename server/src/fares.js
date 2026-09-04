@@ -1,9 +1,9 @@
 // Fare engine: tiers, haversine distance, surge pricing, estimates.
 
 export const TIERS = {
-  zberx:  { key: 'zberx',  name: 'ZberX',     seats: 4, base: 1.5, perKm: 1.1, perMin: 0.25, minFare: 5,  icon: '🚗', blurb: 'Affordable, everyday rides' },
-  zberxl: { key: 'zberxl', name: 'ZberXL',    seats: 6, base: 2.5, perKm: 1.8, perMin: 0.35, minFare: 8,  icon: '🚙', blurb: 'Extra room for groups' },
-  black:  { key: 'black',  name: 'Zber Black', seats: 4, base: 5.0, perKm: 2.5, perMin: 0.5,  minFare: 12, icon: '🏴', blurb: 'Premium rides, top drivers' },
+  muvex:  { key: 'muvex',  name: 'MuveX',     seats: 4, base: 200, perKm: 120, perMin: 15, minFare: 500,  icon: '🚗', blurb: 'Affordable, everyday rides' },
+  muvexl: { key: 'muvexl', name: 'MuveXL',    seats: 6, base: 350, perKm: 180, perMin: 22, minFare: 800,  icon: '🚙', blurb: 'Extra room for groups' },
+  black:  { key: 'black',  name: 'Muve Black', seats: 4, base: 600, perKm: 280, perMin: 35, minFare: 1500, icon: '🏴', blurb: 'Premium rides, top drivers' },
 };
 
 export function haversineM(lat1, lng1, lat2, lng2) {
@@ -22,7 +22,7 @@ export function computeSurge({ activeRides, idleDrivers }) {
 export function fareFor(tierKey, distanceM, durationS, surge = 1) {
   const t = TIERS[tierKey];
   const raw = t.base + (distanceM / 1000) * t.perKm + (durationS / 60) * t.perMin;
-  return Math.round(Math.max(t.minFare, raw) * surge * 100) / 100;
+  return Math.round(Math.max(t.minFare, raw) * surge);
 }
 
 export function estimateAll(distanceM, durationS, surge = 1) {

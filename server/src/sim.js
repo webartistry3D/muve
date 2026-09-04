@@ -6,21 +6,21 @@ import { getRoute } from './routing.js';
 import { haversineM } from './fares.js';
 import { getRide, updateRide, broadcastRide } from './ridecore.js';
 
-const FIRST = ['Aarav', 'Maya', 'Leo', 'Sofia', 'Kiran', 'Nina', 'Omar', 'Elena', 'Ravi', 'Zoe', 'Marco', 'Priya', 'Dev', 'Lena', 'Sam'];
-const LAST = ['Sharma', 'Costa', 'Kim', 'Patel', 'Novak', 'Reyes', 'Iyer', 'Silva', 'Khan', 'Mori', 'Diaz', 'Rao'];
+const FIRST = ['Chidi', 'Adaora', 'Tunde', 'Ngozi', 'Emeka', 'Fatima', 'Kunle', 'Aisha', 'Seyi', 'Zainab', 'Bola', 'Ibrahim', 'Nneka', 'Yakubu', 'Funke'];
+const LAST = ['Okonkwo', 'Adeyemi', 'Okafor', 'Bello', 'Eze', 'Olawale', 'Danjuma', 'Nwosu', 'Adebayo', 'Mohammed', 'Okafor', 'Ibrahim', 'Eze', 'Olawale', 'Bello'];
 const CARS = {
-  zberx: [['Toyota', 'Prius'], ['Honda', 'Civic'], ['Hyundai', 'Elantra'], ['Suzuki', 'Swift']],
-  zberxl: [['Toyota', 'Innova'], ['Honda', 'Odyssey'], ['Kia', 'Carnival']],
-  black: [['Mercedes', 'E-Class'], ['BMW', '5 Series'], ['Audi', 'A6']],
+  muvex: [['Toyota', 'Corolla'], ['Toyota', 'Camry'], ['Honda', 'Accord'], ['Hyundai', 'Elantra']],
+  muvexl: [['Toyota', 'Sienna'], ['Honda', 'Pilot'], ['Kia', 'Sedona']],
+  black: [['Mercedes', 'E-Class'], ['Lexus', 'ES 350'], ['Toyota', 'Land Cruiser']],
 };
 const COLORS = ['Black', 'White', 'Silver', 'Blue', 'Grey'];
 const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
-const plate = () => `ZB ${Math.floor(1000 + Math.random() * 9000)}`;
+const plate = () => `LAG-${Math.floor(100 + Math.random() * 900)}-${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`;
 
 function createSimDriver(tier, lat, lng) {
   const name = `${rand(FIRST)} ${rand(LAST)}`;
-  const [make, model] = rand(CARS[tier] || CARS.zberx);
-  const email = `sim_${Date.now()}_${Math.floor(Math.random() * 1e6)}@sim.zber`;
+  const [make, model] = rand(CARS[tier] || CARS.muvex);
+  const email = `sim_${Date.now()}_${Math.floor(Math.random() * 1e6)}@sim.muve`;
   const info = db.prepare(`
     INSERT INTO users (name,email,password_hash,role,is_sim,rating_sum,rating_count,vehicle_make,vehicle_model,vehicle_plate,vehicle_color,vehicle_tier)
     VALUES (?,?,?,?,1,?,?,?,?,?,?,?)

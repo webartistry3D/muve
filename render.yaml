@@ -1,11 +1,27 @@
 services:
+  # Backend — API + WebSockets
   - type: web
-    name: zber
+    name: muve-api
     runtime: node
     plan: free
-    buildCommand: npm run build
+    rootDir: server
+    buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: JWT_SECRET
         generateValue: true
+      - key: FRONTEND_URL
+        sync: false  # Set to the frontend URL after deploying the frontend
+
+  # Frontend — landing page + React app
+  - type: web
+    name: muve
+    runtime: node
+    plan: free
+    rootDir: client
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: VITE_API_URL
+        sync: false  # Set to the backend URL after deploying the API

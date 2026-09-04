@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1200" width="1800" height="1200">
+  <rect width="1800" height="1200" fill="#F4F1EC"/>
+  <ellipse cx="900" cy="1180" rx="700" ry="40" fill="#D8D4CE" opacity="0.5"/>
+  <text x="900" y="560" font-family="ui-rounded, system-ui, sans-serif" font-size="42" font-weight="600" fill="#8A8A8E" text-anchor="middle">muve — scene still</text>
+  <text x="900" y="640" font-family="ui-monospace, monospace" font-size="28" fill="#B0AAA0" text-anchor="middle">placeholder · render to replace</text>
+  <circle cx="900" cy="420" r="18" fill="#0E8345" opacity="0.3"/>
+</svg>

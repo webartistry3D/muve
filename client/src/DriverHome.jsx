@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MapView from './MapView.jsx';
 import { api, fmtMoney, fmtKm, fmtMin } from './api.js';
 import { getSocket } from './socket.js';
+import ThemeToggle from './ThemeToggle.jsx';
 
-const DEFAULT_CENTER = [19.076, 72.8777];
+const DEFAULT_CENTER = [6.5244, 3.3792]; // Lagos
 
 const NEXT_ACTION = {
   accepted: ['arrived', 'Arrived at pickup', 'btn-dark'],
@@ -11,7 +12,7 @@ const NEXT_ACTION = {
   in_progress: ['complete', 'Complete trip', 'btn-dark'],
 };
 
-export default function DriverHome({ user }) {
+export default function DriverHome({ user, theme, onToggleTheme }) {
   const [online, setOnline] = useState(false);
   const [pos, setPos] = useState(null); // {lat,lng}
   const [center, setCenter] = useState(DEFAULT_CENTER);
@@ -141,10 +142,13 @@ export default function DriverHome({ user }) {
 
   return (
     <>
-      <MapView center={center} markers={markers} route={ride?.route || null} fitKey={fitKey} onMapClick={onMapClick} />
+      <MapView center={center} markers={markers} route={ride?.route || null} fitKey={fitKey} theme={theme} onMapClick={onMapClick} />
       <div className="topbar">
-        <div className="brand-chip">zber</div>
-        <div className="chip">{online ? '🟢 Online' : '⚫ Offline'}</div>
+        <div className="brand-chip">muve</div>
+        <div className="topbar-right">
+          <div className="chip">{online ? '🟢 Online' : '⚫ Offline'}</div>
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+        </div>
       </div>
       {toast && <div className="toast">{toast}</div>}
 

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>muve — About Us</title>
+  <meta name="description" content="muve is a real-time ride-hailing platform built for Nigeria — connecting riders and drivers across Lagos and beyond." />
+  <meta name="theme-color" content="#F4F1EC" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='black'/><text x='50' y='72' font-size='64' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-weight='bold'>m</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="index.html" class="brand">
+      <span class="brand__mark">m</span>
+      muve
+    </a>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html" class="active">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="/app" class="nav-cta">Ride now</a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="page-hero">
+    <div class="page-hero__eyebrow">About muve</div>
+    <h1 class="page-hero__title">Moving Nigeria, one ride at a time.</h1>
+    <p class="page-hero__subtitle">
+      muve is a full-stack, real-time ride-hailing platform built from scratch for Nigerian streets.
+      From Lagos to Abuja, we're connecting riders with trusted drivers — making every journey
+      safer, faster, and fairer.
+    </p>
+  </section>
+
+  <!-- Story -->
+  <section class="section">
+    <h2>Our story</h2>
+    <p>
+      muve was born from a simple frustration: getting across Lagos shouldn't be complicated.
+      The danfo buses run, the okadas weave, but when you need a ride that's reliable, safe, and
+      priced fairly — the options are thin. So we built one.
+    </p>
+    <p>
+      What started as a clone-the-architecture project became a real platform: a full-stack
+      ride-hailing system with real-time GPS tracking, dynamic surge pricing, a matching engine
+      that finds the nearest driver in seconds, and a simulated fleet that drives real road routes.
+      No black boxes. No opaque pricing. Just a clean, honest ride from A to B.
+    </p>
+    <p>
+      Today muve runs as a demo you can try end-to-end — sign up as a rider, request a trip, and
+      watch a driver pick you up and drive the route in real time. It's the full experience,
+      built to scale.
+    </p>
+  </section>
+
+  <!-- Mission -->
+  <section class="section">
+    <h2>What we believe</h2>
+    <div class="values-grid">
+      <div class="value-card">
+        <div class="value-card__icon">🇳🇬</div>
+        <h3>Built for Nigeria</h3>
+        <p>Naira pricing, Lagos defaults, local car models, and plates that look like home. Not a foreign app retrofitted — built ground-up for our streets.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-card__icon">⚡</div>
+        <h3>Real-time, always</h3>
+        <p>Live GPS streaming over WebSockets. You see your driver moving on the map every second — no refreshing, no guessing where they are.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-card__icon">🤝</div>
+        <h3>Fair for drivers</h3>
+        <p>Drivers see the full fare before accepting. No surprise cuts. Earnings are transparent — today, this week, all time — with per-trip breakdowns.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-card__icon">🔍</div>
+        <h3>Transparent pricing</h3>
+        <p>Fares are calculated from road distance, time, and tier rates — shown upfront before you request. Surge is visible, never hidden.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-card__icon">📱</div>
+        <h3>Works on any phone</h3>
+        <p>Installable as a PWA — add it to your home screen and it runs like a native app, even offline. No app store needed.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-card__icon">🔓</div>
+        <h3>Open and honest</h3>
+        <p>The code is open source. Every fare calculation, every matching decision, every route — it's all there to inspect. No secrets.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="section section--wide">
+    <h2>By the numbers</h2>
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat__num">3</div>
+        <div class="stat__label">Ride tiers</div>
+      </div>
+      <div class="stat">
+        <div class="stat__num">1Hz</div>
+        <div class="stat__label">GPS update rate</div>
+      </div>
+      <div class="stat">
+        <div class="stat__num">15s</div>
+        <div class="stat__label">Accept countdown</div>
+      </div>
+      <div class="stat">
+        <div class="stat__num">0</div>
+        <div class="stat__label">API keys required</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section">
+    <h2>How a muve ride works</h2>
+    <div class="timeline">
+      <div class="timeline__item">
+        <h3>You set your destination</h3>
+        <time>Step 1</time>
+        <p>Search an address or tap the map. muve geocodes it instantly and shows the road distance and duration.</p>
+      </div>
+      <div class="timeline__item">
+        <h3>Pick your tier</h3>
+        <time>Step 2</time>
+        <p>MuveX for everyday rides, MuveXL for groups, or Muve Black for premium. Fares shown upfront in Naira — no surprises.</p>
+      </div>
+      <div class="timeline__item">
+        <h3>The matching engine finds your driver</h3>
+        <time>Step 3</time>
+        <p>Your ride is offered to the nearest idle driver. If they decline or timeout, it cascades to the next closest — until someone accepts.</p>
+      </div>
+      <div class="timeline__item">
+        <h3>Track in real time</h3>
+        <time>Step 4</time>
+        <p>Watch your driver drive to you along real roads, then to your destination. GPS streams every second over WebSocket.</p>
+      </div>
+      <div class="timeline__item">
+        <h3>Rate and tip</h3>
+        <time>Step 5</time>
+        <p>Arrive, rate your driver, leave a tip. Ratings aggregate onto driver profiles — quality rises, poor service doesn't last.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech -->
+  <section class="section">
+    <h2>Built with</h2>
+    <p>
+      React 18 and Vite on the frontend with Leaflet maps. Node, Express, and Socket.io on the
+      backend with better-sqlite3 for zero-latency queries. OSRM for road routing, Nominatim for
+      geocoding, OpenStreetMap tiles for the map — all free, no API keys. Deployable as a single
+      process on Render or any Node host.
+    </p>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-banner">
+    <h2>Ready to ride?</h2>
+    <p>Try the full muve experience — no signup cost, no app install required.</p>
+    <a href="/app" class="btn-submit">Ride now →</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" style="width:24px;height:24px;font-size:0.7rem;">m</span>
+        muve
+      </div>
+      <div class="footer__links">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="https://github.com/xSwaraJx/muve">GitHub</a>
+      </div>
+      <div class="footer__copy">© 2026 muve. Built for Nigeria. MIT licensed.</div>
+    </div>
+  </footer>
+
+
+</body>
+</html>

@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const db = new Database(path.join(__dirname, '..', 'zber.db'));
+const db = new Database(path.join(__dirname, '..', 'muve.db'));
 db.pragma('journal_mode = WAL');
 
 db.exec(`
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
   rating_sum REAL NOT NULL DEFAULT 0,
   rating_count INTEGER NOT NULL DEFAULT 0,
   vehicle_make TEXT, vehicle_model TEXT, vehicle_plate TEXT, vehicle_color TEXT,
-  vehicle_tier TEXT DEFAULT 'zberx',
+  vehicle_tier TEXT DEFAULT 'muvex',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -50,6 +50,29 @@ CREATE TABLE IF NOT EXISTS payment_methods (
   label TEXT,
   is_default INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS kyc (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL UNIQUE REFERENCES users(id),
+  full_name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  dob TEXT NOT NULL,
+  id_type TEXT NOT NULL,
+  id_number TEXT NOT NULL,
+  address TEXT NOT NULL,
+  city TEXT NOT NULL,
+  state TEXT NOT NULL,
+  license_number TEXT,
+  vehicle_reg TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  submitted_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `);
+
+// Migrations: add columns if they don't exist (for existing databases)
+const cols = db.prepare("PRAGMA table_info(kyc)").all().map((c) => c.name);
+if (!cols.includes('license_number')) db.exec('ALTER TABLE kyc ADD COLUMN license_number TEXT');
+if (!cols.includes('vehicle_reg')) db.exec('ALTER TABLE kyc ADD COLUMN vehicle_reg TEXT');
 
 export default db;

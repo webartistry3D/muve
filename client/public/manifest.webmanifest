@@ -1,6 +1,6 @@
 {
-  "name": "zber — Get there",
-  "short_name": "zber",
+  "name": "muve — Get there",
+  "short_name": "muve",
   "description": "Ride-hailing app. Request a ride, track your driver live.",
   "start_url": "/",
   "display": "standalone",

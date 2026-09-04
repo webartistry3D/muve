@@ -1,10 +1,10 @@
 <div align="center">
 
-# 🚗 zber
+# 🚗 muve
 
-**A full-stack, real-time ride-hailing platform — an Uber-class experience built from scratch.**
+**A full-stack, real-time ride-hailing platform built for Nigeria — an Uber-class experience from scratch.**
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-zber.onrender.com-black?style=for-the-badge)](https://zber.onrender.com)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-muve.onrender.com-black?style=for-the-badge)](https://muve.onrender.com)
 
 ![React](https://img.shields.io/badge/React_18-20232A?logo=react&logoColor=61DAFB)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=nodedotjs&logoColor=white)
@@ -21,7 +21,7 @@
 
 ## ✨ Try it now
 
-**👉 [zber.onrender.com](https://zber.onrender.com)** — sign up as a rider, set a destination, and a driver picks you up and drives the route in real time. Works great on mobile: open in Safari/Chrome → *Add to Home Screen* to install it as an app.
+**👉 [muve.onrender.com](https://muve.onrender.com)** — sign up as a rider, set a destination, and a driver picks you up and drives the route in real time. Works great on mobile: open in Safari/Chrome → *Add to Home Screen* to install it as an app.
 
 > ⏳ Hosted on a free tier — if the app has been idle it takes ~30–45 seconds to wake up on first load.
 
@@ -32,7 +32,7 @@
 | Rider | Driver | Platform |
 |---|---|---|
 | 📍 Address search + tap-to-set pickup/destination | 🟢 Online/offline availability toggle | 🔐 JWT authentication, rider & driver roles |
-| 🚕 3 ride tiers (ZberX / XL / Black) with live fare estimates | 📲 Incoming ride offers with 15s accept countdown | ⚡ Real-time GPS + status over WebSockets |
+| 🚕 3 ride tiers (MuveX / XL / Black) with live fare estimates | 📲 Incoming ride offers with 15s accept countdown | ⚡ Real-time GPS + status over WebSockets |
 | 📈 Dynamic surge pricing | 🗺️ Full trip flow: arrive → start → complete | 🧠 Nearest-driver matching with timeout cascade |
 | 🚗 Live driver tracking on the map | 💰 Earnings dashboard (today / week / all-time) | 🛣️ Real road routing (OSRM) + geocoding (Nominatim) |
 | ⭐ Post-ride ratings & tips | 📊 Trip history with per-trip earnings | 🤖 Simulated driver fleet that drives real routes |
@@ -86,8 +86,8 @@ graph LR
 ## 🚀 Run locally
 
 ```bash
-git clone https://github.com/xSwaraJx/zber.git
-cd zber
+git clone https://github.com/xSwaraJx/muve.git
+cd muve
 npm install && npm run install:all
 npm run dev          # backend :4000 + frontend :5173
 ```
@@ -101,7 +101,7 @@ npm run build && npm start   # production mode: everything on :4000
 ## 📁 Project structure
 
 ```
-zber/
+muve/
 ├── server/src/
 │   ├── index.js      # Express + Socket.io bootstrap, static serving
 │   ├── auth.js       # JWT auth, registration, roles

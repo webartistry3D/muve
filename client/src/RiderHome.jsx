@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MapView from './MapView.jsx';
 import { api, geocode, reverseGeocode, fmtMoney, fmtKm, fmtMin } from './api.js';
 import { getSocket } from './socket.js';
+import ThemeToggle from './ThemeToggle.jsx';
 
-const DEFAULT_CENTER = [19.076, 72.8777]; // Mumbai fallback
+const DEFAULT_CENTER = [6.5244, 3.3792]; // Lagos fallback
 
 const STATUS_TEXT = {
   matching: ['Finding your driver…', 'Contacting nearby drivers'],
@@ -12,7 +13,7 @@ const STATUS_TEXT = {
   in_progress: ['On your trip', 'Sit back and enjoy the ride'],
 };
 
-export default function RiderHome({ user }) {
+export default function RiderHome({ user, theme, onToggleTheme }) {
   const [phase, setPhase] = useState('set'); // set | choose | matching | active | rate
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [pickup, setPickup] = useState(null);
@@ -21,7 +22,7 @@ export default function RiderHome({ user }) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [estimate, setEstimate] = useState(null);
-  const [tier, setTier] = useState('zberx');
+  const [tier, setTier] = useState('muvex');
   const [payments, setPayments] = useState([]);
   const [payment, setPayment] = useState('Cash');
   const [ride, setRide] = useState(null);
@@ -42,8 +43,8 @@ export default function RiderHome({ user }) {
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
         setCenter([lat, lng]);
-        const addr = await reverseGeocode(lat, lng);
-        setPickup((p) => p || { lat, lng, addr });
+        // Center map on user but don't auto-fill the pickup field —
+        // user picks their pickup explicitly via search or map tap
       },
       () => {},
       { enableHighAccuracy: true, timeout: 8000 }
@@ -142,7 +143,7 @@ export default function RiderHome({ user }) {
     try { await api(`/api/rides/${ride.id}/rate`, { method: 'POST', body: { rating: stars, tip } }); }
     catch { /* already rated / non-fatal */ }
     setPhase('set'); setRide(null); setDrop(null); setEstimate(null); setStars(5); setTip(0);
-    showToast('Thanks for riding with zber!');
+    showToast('Thanks for riding with muve!');
   };
 
   // Map layers
@@ -170,11 +171,15 @@ export default function RiderHome({ user }) {
         markers={markers}
         route={route}
         fitKey={fitKey}
+        theme={theme}
         onMapClick={(phase === 'set' || phase === 'choose') ? (ll) => setLocation(activeField, ll) : null}
       />
       <div className="topbar">
-        <div className="brand-chip">zber</div>
-        {estimate && phase === 'choose' && <div className="chip">{fmtKm(estimate.distanceM)} · {fmtMin(estimate.durationS)}</div>}
+        <div className="brand-chip">muve</div>
+        <div className="topbar-right">
+          {estimate && phase === 'choose' && <div className="chip">{fmtKm(estimate.distanceM)} · {fmtMin(estimate.durationS)}</div>}
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+        </div>
       </div>
       {toast && <div className="toast">{toast}</div>}
 
@@ -187,7 +192,7 @@ export default function RiderHome({ user }) {
             <div className={`loc-input ${activeField === 'pickup' ? 'active' : ''}`} onClick={() => setActiveField('pickup')}>
               <span className="dot green" />
               <input
-                placeholder="Pickup location"
+                placeholder="Where from?"
                 value={activeField === 'pickup' && query ? query : (pickup?.addr || '')}
                 onChange={(e) => { setActiveField('pickup'); setQuery(e.target.value); }}
                 onFocus={() => setActiveField('pickup')}
@@ -228,7 +233,7 @@ export default function RiderHome({ user }) {
                 <div className="row spread" style={{ margin: '10px 0 12px' }}>
                   <span className="muted">Payment</span>
                   <select value={payment} onChange={(e) => setPayment(e.target.value)}
-                    style={{ border: '1.5px solid var(--line)', borderRadius: 8, padding: '6px 10px', background: '#fff' }}>
+                    style={{ border: '1.5px solid var(--line)', borderRadius: 8, padding: '6px 10px', background: 'var(--surface)', color: 'var(--ink)' }}>
                     {payments.map((p) => (
                       <option key={p.id} value={p.label || p.brand}>{p.label || `${p.brand} •••• ${p.last4}`}</option>
                     ))}
@@ -248,7 +253,7 @@ export default function RiderHome({ user }) {
           <div className="status-banner">
             <div className="row" style={{ justifyContent: 'center', marginBottom: 10 }}><div className="spinner" /></div>
             <div className="s-title">Finding your driver…</div>
-            <div className="s-sub">Contacting nearby {ride?.tier === 'black' ? 'Zber Black' : ride?.tier === 'zberxl' ? 'ZberXL' : 'ZberX'} drivers</div>
+            <div className="s-sub">Contacting nearby {ride?.tier === 'black' ? 'Muve Black' : ride?.tier === 'muvexl' ? 'MuveXL' : 'MuveX'} drivers</div>
             <button className="btn btn-light btn-block" style={{ marginTop: 16 }} onClick={cancelRide}>Cancel request</button>
           </div>
         )}
@@ -274,7 +279,7 @@ export default function RiderHome({ user }) {
               <span className="big">{fmtMoney(ride.fare)}</span>
             </div>
             {['accepted', 'arrived'].includes(ride.status) && (
-              <button className="btn btn-light btn-block" onClick={cancelRide}>Cancel ride ($2 fee)</button>
+              <button className="btn btn-light btn-block" onClick={cancelRide}>Cancel ride (₦200 fee)</button>
             )}
           </>
         )}

@@ -1,19 +1,21 @@
 // Minimal API client with JWT auth.
-export function getToken() { return localStorage.getItem('zber_token'); }
+// In dev, Vite proxies /api to localhost:4000. In prod, VITE_API_URL points to the backend.
+const API_BASE = import.meta.env.VITE_API_URL || '';
+export function getToken() { return localStorage.getItem('muve_token'); }
 export function setSession(token, user) {
-  localStorage.setItem('zber_token', token);
-  localStorage.setItem('zber_user', JSON.stringify(user));
+  localStorage.setItem('muve_token', token);
+  localStorage.setItem('muve_user', JSON.stringify(user));
 }
 export function getUser() {
-  try { return JSON.parse(localStorage.getItem('zber_user')); } catch { return null; }
+  try { return JSON.parse(localStorage.getItem('muve_user')); } catch { return null; }
 }
 export function clearSession() {
-  localStorage.removeItem('zber_token');
-  localStorage.removeItem('zber_user');
+  localStorage.removeItem('muve_token');
+  localStorage.removeItem('muve_user');
 }
 
 export async function api(path, { method = 'GET', body } = {}) {
-  const res = await fetch(path, {
+  const res = await fetch(`${API_BASE}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -46,6 +48,6 @@ export async function reverseGeocode(lat, lng) {
   }
 }
 
-export const fmtMoney = (n) => `$${(Number(n) || 0).toFixed(2)}`;
+export const fmtMoney = (n) => `\u20a6${(Number(n) || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 export const fmtKm = (m) => `${((m || 0) / 1000).toFixed(1)} km`;
 export const fmtMin = (s) => `${Math.max(1, Math.round((s || 0) / 60))} min`;
