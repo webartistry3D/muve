@@ -13,9 +13,10 @@ const app = express();
 // Serve all static files from dist/
 app.use(express.static(dist));
 
-// Assets built with base: '/app/' are referenced as /app/assets/...
-// but physically live in dist/assets/... — strip the /app prefix for static files
-app.use('/app/assets', express.static(path.join(dist, 'assets')));
+// The Vite build uses base: '/app/' so all asset references are /app/assets/...
+// and /app/sw.js, /app/manifest.webmanifest, etc.
+// Map /app/* static files (with extensions) to dist/* by stripping the /app prefix
+app.use('/app', express.static(dist));
 
 // SPA fallback for /app/* — serve the React app shell
 // Only serve app.html for navigation routes (no file extension)
@@ -28,8 +29,6 @@ app.get(/^\/app(.*)$/, (req, res, next) => {
 // For any other unmatched route, serve the landing page
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) return next();
-  // Don't serve HTML for missing asset requests under /app/assets
-  if (req.path.startsWith('/app/assets')) return res.status(404).send('Not found');
   // Try to serve the exact file first (about.html, contact.html, etc.)
   const file = path.join(dist, req.path);
   res.sendFile(file, (err) => {
