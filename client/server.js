@@ -10,13 +10,13 @@ const dist = path.join(__dirname, 'dist');
 
 const app = express();
 
-// Serve all static files from dist/
-app.use(express.static(dist));
+// Serve all static files from dist/ (no index fallback — we handle routes below)
+app.use(express.static(dist, { index: false }));
 
 // The Vite build uses base: '/app/' so all asset references are /app/assets/...
 // and /app/sw.js, /app/manifest.webmanifest, etc.
 // Map /app/* static files (with extensions) to dist/* by stripping the /app prefix
-app.use('/app', express.static(dist));
+app.use('/app', express.static(dist, { index: false }));
 
 // SPA fallback for /app/* — serve the React app shell
 // Only serve app.html for navigation routes (no file extension)
