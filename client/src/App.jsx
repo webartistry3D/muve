@@ -15,15 +15,59 @@ export default function App() {
   const [user, setUser] = useState(getUser());
   const [tab, setTab] = useState('home');
   const [theme, setTheme] = useState(() => localStorage.getItem('muve-theme') || 'light');
+  const [installEvent, setInstallEvent] = useState(null);
+  const [showInstall, setShowInstall] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('muve-theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    const dismissed = localStorage.getItem('muve-install-dismissed');
+    if (dismissed) return;
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallEvent(e);
+      setShowInstall(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installEvent) return;
+    installEvent.prompt();
+    const { outcome } = await installEvent.userChoice;
+    if (outcome === 'accepted' || outcome === 'dismissed') {
+      setInstallEvent(null);
+      setShowInstall(false);
+      localStorage.setItem('muve-install-dismissed', '1');
+    }
+  };
+
+  const dismissInstall = () => {
+    setShowInstall(false);
+    localStorage.setItem('muve-install-dismissed', '1');
+  };
+
   const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
 
-  if (!user) return <AuthPage onAuth={setUser} />;
+  if (!user) return (
+    <>
+      {showInstall && (
+        <div className="install-banner">
+          <div className="install-banner__text">
+            <strong>Install muve</strong>
+            <span>Add to your home screen for quick access</span>
+          </div>
+          <button className="install-banner__btn" onClick={handleInstall}>Install</button>
+          <button className="install-banner__close" onClick={dismissInstall}>×</button>
+        </div>
+      )}
+      <AuthPage onAuth={setUser} />
+    </>
+  );
 
   const logout = () => {
     clearSession();
