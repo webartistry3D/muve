@@ -13,24 +13,23 @@ const app = express();
 // Serve all static files from dist/
 app.use(express.static(dist));
 
+// Assets built with base: '/app/' are referenced as /app/assets/...
+// but physically live in dist/assets/... — strip the /app prefix for static files
+app.use('/app/assets', express.static(path.join(dist, 'assets')));
+
 // SPA fallback for /app/* — serve the React app shell
 // Only serve app.html for navigation routes (no file extension)
-// Static assets like /app/assets/*.js are served by express.static above
 app.get(/^\/app(.*)$/, (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) return next();
-  // If the path has a file extension, try to serve it from dist first
-  if (path.extname(req.path)) {
-    const file = path.join(dist, req.path);
-    return res.sendFile(file, (err) => {
-      if (err) next();
-    });
-  }
+  if (path.extname(req.path)) return next(); // let express.static handle files
   res.sendFile(path.join(dist, 'app.html'));
 });
 
 // For any other unmatched route, serve the landing page
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) return next();
+  // Don't serve HTML for missing asset requests under /app/assets
+  if (req.path.startsWith('/app/assets')) return res.status(404).send('Not found');
   // Try to serve the exact file first (about.html, contact.html, etc.)
   const file = path.join(dist, req.path);
   res.sendFile(file, (err) => {
