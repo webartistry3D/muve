@@ -14,8 +14,17 @@ const app = express();
 app.use(express.static(dist));
 
 // SPA fallback for /app/* — serve the React app shell
+// Only serve app.html for navigation routes (no file extension)
+// Static assets like /app/assets/*.js are served by express.static above
 app.get(/^\/app(.*)$/, (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) return next();
+  // If the path has a file extension, try to serve it from dist first
+  if (path.extname(req.path)) {
+    const file = path.join(dist, req.path);
+    return res.sendFile(file, (err) => {
+      if (err) next();
+    });
+  }
   res.sendFile(path.join(dist, 'app.html'));
 });
 
