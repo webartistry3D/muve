@@ -1,167 +1,103 @@
-# Muve — Desktop Hero Image Generation Prompts
+# Muve — Landing Page Image Prompts
 
-> **18 images total** for the scroll-scrubbed landing page hero animation.
+> **10 images total** for the scroll-scrubbed landing page hero.
 > Each prompt produces one image. Feed them to Gemini one at a time or batch them.
-> All images share the same art direction — isometric clay diorama, Lagos-themed, no text.
+> All images share the same art direction — **realistic photography**, Lagos-themed, no text.
 
 ---
 
 ## Art Direction (applies to all images)
 
-**Style:** Isometric low-poly 3D diorama floating as a small rounded island on a plain solid `#F4F1EC` background with a soft contact shadow beneath it. Soft matte clay 3D render, rounded toy-model shapes, gentle warm studio lighting, soft long shadows, tilt-shift miniature look.
+**Style:** Photorealistic. Cinematic. Warm, natural lighting. Shot on a full-frame camera with a 35mm or 50mm lens. Shallow depth of field where appropriate. Rich, true-to-life colors. No CGI, no 3D render, no low-poly, no illustration, no cartoon. Real photography look.
 
-**Color palette:** charcoal `#1A1A1F`, signal green `#0E8345`, warm grey `#8A8A8E`, cream `#F4F1EC`, amber `#FFB84D`, brick red `#C5564A`.
+**Color palette:** Warm earth tones, Lagos golden hour light, deep greens, charcoal, amber, and cream backgrounds where the image edges fade to a soft `#F4F1EC` vignette so images blend seamlessly into the page background.
 
-**Rules:** Highly detailed, centered composition, absolutely no text, no letters, no numbers, no logos.
+**Rules:** Highly detailed, centered composition, absolutely no text, no letters, no numbers, no logos, no watermarks. No phone screens showing app UI — use glowing light and blurred screen glow instead.
 
-**Aspect ratio:** 16:9 landscape (desktop).
+**Aspect ratio:** 16:9 landscape (desktop). A matching 9:16 portrait version is needed for mobile (same scene, reframed for vertical).
 
----
-
-## Scene 1 — The City (Stills + Dive)
-
-### Image 1: Still — City at Dawn
-
-Isometric low-poly 3D diorama floating as a small rounded island on a plain solid #F4F1EC background with a soft contact shadow beneath it. Soft matte clay 3D render, rounded toy-model shapes, gentle warm studio lighting, soft long shadows, tilt-shift miniature look. Cohesive color palette of charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Highly detailed, centered composition, absolutely no text, no letters, no numbers, no logos.
-
-Subject: A miniature Lagos city at dawn — a dense little island of low-poly buildings with colorful shop fronts, winding streets, tiny palm trees, a lagoon waterfront with a bridge, and a few early morning yellow danfo buses just starting to move. Streetlamps are warm amber and just turning off as soft pink-gold morning light touches the rooftops. A few tiny clay people walk on sidewalks. The whole city is the subject — a living, breathing miniature West African world about to wake up.
-
-### Image 2: Dive — Into the City
-
-Single continuous cinematic camera move, no cuts. Begin high and far, looking down at the whole miniature Lagos city island from outside like a tiny model. The camera slowly glides forward and descends toward it, sweeping in toward the city center where the streets are waking up, as if flying inside. As the camera pushes in, the rooftops and upper structures gently lift and open away to reveal the warm streets below with tiny yellow danfo buses beginning to move and palm trees swaying. Soft matte clay diorama, tilt-shift miniature, warm morning light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth, graceful, slow motion, subtle parallax. No text, no captions.
+**Background blending:** Each image should have a soft cream `#F4F1EC` vignette around the edges so it blends into the page background without hard borders.
 
 ---
 
-## Connector 1 — City → Request
+## Image 1: Lagos at Dawn (City)
 
-### Image 3: Connector — City to Request
+**File:** `01-city.webp` / `01-city-m.webp`
 
-Single continuous cinematic camera move, no cuts. The camera smoothly pulls up and back out of the Lagos city streets, rising into the sky, then glides forward across the connected miniature world and arrives above the street corner where a person waits with a glowing phone near a market stall, beginning to descend toward it. One connected miniature clay world, seamless flowing aerial transition. Soft matte clay diorama, tilt-shift miniature, warm light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth graceful slow motion. No text, no captions.
+Photorealistic aerial view of Lagos at dawn. Golden first light washing over the city — dense neighborhoods with colorful rooftops, the lagoon waterfront with boats, bridges connecting the mainland to the islands, palm trees dotting the landscape. Yellow danfo buses beginning to fill the roads. Soft morning haze. Warm amber and golden tones. The edges of the image fade softly into a cream `#F4F1EC` background. Cinematic, shot from a drone perspective. No text, no logos.
 
----
+## Image 2: Lagos Streets (Streets)
 
-## Scene 2 — The Request (Stills + Dive)
+**File:** `02-streets.webp` / `02-streets-m.webp`
 
-### Image 4: Still — Request at Street Corner
+Photorealistic street-level view of a bustling Lagos neighborhood. Market stalls with colorful canopies, people walking on sidewalks, yellow danfo buses passing by, street vendors selling fruits and goods, palm trees and power lines overhead. Late morning light, warm and vibrant. A sense of everyday life and energy. Shallow depth of field on the foreground. Edges fade to cream `#F4F1EC`. No text, no logos.
 
-Isometric low-poly 3D diorama floating as a small rounded island on a plain solid #F4F1EC background with a soft contact shadow beneath it. Soft matte clay 3D render, rounded toy-model shapes, gentle warm studio lighting, soft long shadows, tilt-shift miniature look. Cohesive color palette of charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Highly detailed, centered composition, absolutely no text, no letters, no numbers, no logos.
+## Image 3: The Request
 
-Subject: A street corner in miniature Lagos — a tiny clay person standing at the curb near a colorful market stall, looking down at their phone which glows with a soft green light. Above their head floats a large green location pin marker, glowing softly. Around them are low-poly buildings with shop fronts, a crosswalk, a streetlight, and a parked yellow danfo bus. The person is centered, the glowing pin and phone are the focal points. A sense of waiting, of a journey about to begin.
+**File:** `03-request.webp` / `03-request-m.webp`
 
-### Image 5: Dive — Into the Request
+Photorealistic close-up of a young Nigerian person standing on a Lagos street corner, holding a smartphone at chest height. The phone screen is blurred but emits a soft green glow. They're looking at the screen with a slight smile. Behind them, the street is softly out of focus — market stalls, a parked car, warm afternoon light. The green glow from the phone illuminates their face gently. Edges fade to cream `#F4F1EC`. No text, no visible app UI, no logos.
 
-Single continuous cinematic camera move, no cuts. Begin high and far, looking down at the Lagos street corner diorama from outside like a tiny model. The camera slowly glides forward and descends toward it, sweeping in toward the tiny person with the glowing phone and the floating green location pin near a colorful market stall, as if flying inside. As the camera pushes in, the building facades gently lift and open away to reveal the person waiting at the curb. Soft matte clay diorama, tilt-shift miniature, warm light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth, graceful, slow motion, subtle parallax. No text, no captions.
+## Image 4: The Match
 
----
+**File:** `04-match.webp` / `04-match-m.webp`
 
-## Connector 2 — Request → Match
+Photorealistic view of a Lagos street at dusk with soft green light pulses overlaid on the scene — representing the matching network. The pulses are subtle, glowing green rings and dots floating above the street, suggesting data flowing between devices and cars. A few cars are visible on the road, some with headlights turning on. The atmosphere is warm twilight with green accents. Edges fade to cream `#F4F1EC`. No text, no logos.
 
-### Image 6: Connector — Request to Match
+## Image 5: The Driver
 
-Single continuous cinematic camera move, no cuts. The camera smoothly pulls up and back out of the street corner, rising into the sky, then glides forward across the connected miniature world and arrives above the Lagos streets with glowing green network paths past colorful shop fronts, beginning to descend toward them. One connected miniature clay world, seamless flowing aerial transition. Soft matte clay diorama, tilt-shift miniature, warm light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth graceful slow motion. No text, no captions.
+**File:** `05-driver.webp` / `05-driver-m.webp`
 
----
+Photorealistic shot of a Nigerian man in his 30s opening the door of a clean white Toyota Corolla parked on a Lagos street at dusk. He's dressed casually — a neat polo shirt. The car's headlights are on, casting warm light on the road. A phone on the dashboard glows green. The scene feels professional and trustworthy. Warm evening light, shallow depth of field. Edges fade to cream `#F4F1EC`. No text, no logos.
 
-## Scene 3 — The Match (Stills + Dive)
+## Image 6: The Ride
 
-### Image 7: Still — Matching Engine
+**File:** `06-ride.webp` / `06-ride-m.webp`
 
-Isometric low-poly 3D diorama floating as a small rounded island on a plain solid #F4F1EC background with a soft contact shadow beneath it. Soft matte clay 3D render, rounded toy-model shapes, gentle warm studio lighting, soft long shadows, tilt-shift miniature look. Cohesive color palette of charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Highly detailed, centered composition, absolutely no text, no letters, no numbers, no logos.
+Photorealistic interior shot of a clean car — a passenger sitting in the back seat of a Toyota Corolla, looking out the window at Lagos passing by. Through the window we see blurred streetlights, market stalls, and palm trees in warm evening light. The interior is clean and comfortable. A subtle green glow from a phone mounted on the dashboard. Cozy, premium feel. Edges fade to cream `#F4F1EC`. No text, no logos.
 
-Subject: The matching engine visualized — miniature Lagos streets with glowing green pulses of light racing along them like data signals, connecting a green rider pin on one block to a small car on a nearby block. A subtle grid overlay of thin amber lines suggests the dispatch network. The green light trails curve along the roads past colorful shop fronts and palm trees, forming a glowing path between rider and driver. The city buildings are dimmed slightly so the glowing network paths are the focal point. A sense of invisible technology connecting people across the bustling city.
+## Image 7: Fare Negotiation
 
-### Image 8: Dive — Into the Match
+**File:** `07-fare.webp` / `07-fare-m.webp`
 
-Single continuous cinematic camera move, no cuts. Begin high and far, looking down at the miniature Lagos streets with glowing network paths from outside like a tiny model. The camera slowly glides forward and descends toward it, sweeping in toward the glowing green light trails connecting the rider pin to the nearby car past colorful shop fronts, as if flying inside. As the camera pushes in, the buildings gently lift and open away to reveal the pulsing network signals racing along the streets. Soft matte clay diorama, tilt-shift miniature, warm light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth, graceful, slow motion, subtle parallax. No text, no captions.
+Photorealistic close-up of a hand holding a smartphone, screen blurred but showing a warm green and amber glow suggesting a fare display. The background is a softly out-of-focus Lagos street at dusk. Naira notes are faintly visible in the person's other hand, suggesting cash payment option. Warm, inviting tones. The image conveys choice and transparency. Edges fade to cream `#F4F1EC`. No text, no readable numbers, no logos.
 
----
+## Image 8: Arrival
 
-## Connector 3 — Match → Driver
+**File:** `08-arrival.webp` / `08-arrival-m.webp`
 
-### Image 9: Connector — Match to Driver
+Photorealistic shot of a passenger stepping out of a white car onto a Lagos street in the evening. The car door is open, warm streetlights glow overhead, the destination is a nice building entrance with plants. The passenger looks satisfied. The driver is visible through the windshield, nodding. Warm, golden evening light. A sense of completion and satisfaction. Edges fade to cream `#F4F1EC`. No text, no logos.
 
-Single continuous cinematic camera move, no cuts. The camera smoothly pulls up and back out of the glowing network streets, rising into the sky, then glides forward across the connected miniature world and arrives above a small Toyota Corolla at a curb with its headlights turning on, beginning to descend toward it. One connected miniature clay world, seamless flowing aerial transition. Soft matte clay diorama, tilt-shift miniature, warm light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth graceful slow motion. No text, no captions.
+## Image 9: Driver Earnings
 
----
+**File:** `09-earnings.webp` / `09-earnings-m.webp`
 
-## Scene 4 — The Driver (Stills + Dive)
+Photorealistic shot of a Nigerian driver sitting in his parked car during a break, reviewing a phone that glows with a soft green and amber light (dashboard/earnings view, blurred). On the passenger seat beside him is a notebook and a fuel receipt. The scene conveys financial awareness and professionalism. Warm afternoon light through the windshield. Shallow depth of field. Edges fade to cream `#F4F1EC`. No text, no readable numbers, no logos.
 
-### Image 10: Still — Driver Starting Shift
+## Image 10: Closing — Lagos at Dusk
 
-Isometric low-poly 3D diorama floating as a small rounded island on a plain solid #F4F1EC background with a soft contact shadow beneath it. Soft matte clay 3D render, rounded toy-model shapes, gentle warm studio lighting, soft long shadows, tilt-shift miniature look. Cohesive color palette of charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Highly detailed, centered composition, absolutely no text, no letters, no numbers, no logos.
+**File:** `10-closing.webp` / `10-closing-m.webp`
 
-Subject: A small clay Toyota Corolla parked at a curb on a Lagos street, its headlights just turning on with warm glow. A tiny driver figure is getting into the car, door open. Above the car floats a soft green glowing notification bubble. The car is centered, about to pull out into the street. Around it are buildings with colorful shop fronts, a streetlight, a palm tree, and the road stretching ahead. A sense of a shift starting, of someone heading out to work.
-
-### Image 11: Dive — Into the Driver
-
-Single continuous cinematic camera move, no cuts. Begin high and far, looking down at the small Toyota Corolla and driver diorama from outside like a tiny model. The camera slowly glides forward and descends toward it, sweeping in toward the car with its headlights turning on and the driver getting in on a Lagos street, as if flying inside. As the camera pushes in, the surrounding buildings with colorful shop fronts gently lift and open away to reveal the car at the curb with the glowing green notification. Soft matte clay diorama, tilt-shift miniature, warm light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth, graceful, slow motion, subtle parallax. No text, no captions.
-
----
-
-## Connector 4 — Driver → Ride
-
-### Image 12: Connector — Driver to Ride
-
-Single continuous cinematic camera move, no cuts. The camera smoothly pulls up and back out of the car at the curb, rising into the sky, then glides forward across the connected miniature world and arrives above a Lagos street with three cars driving along a glowing green route past palm trees, beginning to descend toward them. One connected miniature clay world, seamless flowing aerial transition. Soft matte clay diorama, tilt-shift miniature, warm light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth graceful slow motion. No text, no captions.
-
----
-
-## Scene 5 — The Ride (Stills + Dive)
-
-### Image 13: Still — Three Cars in Motion
-
-Isometric low-poly 3D diorama floating as a small rounded island on a plain solid #F4F1EC background with a soft contact shadow beneath it. Soft matte clay 3D render, rounded toy-model shapes, gentle warm studio lighting, soft long shadows, tilt-shift miniature look. Cohesive color palette of charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Highly detailed, centered composition, absolutely no text, no letters, no numbers, no logos.
-
-Subject: A Lagos street in motion — three different clay cars driving along a road through the miniature city. A white Toyota Corolla, a larger silver Toyota Sienna, and a sleek black Lexus ES 350, all moving in the same direction with small motion-suggesting poses. Buildings with colorful shop fronts, palm trees, and streetlights line the road. A green route line glows along the street ahead of the cars. The three cars represent three tiers of service, arranged in a pleasing diagonal composition. A sense of flow, of movement through the bustling city.
-
-### Image 14: Dive — Into the Ride
-
-Single continuous cinematic camera move, no cuts. Begin high and far, looking down at the Lagos street with three cars in motion from outside like a tiny model. The camera slowly glides forward and descends toward it, sweeping in toward the three cars driving along the road with the glowing green route line past palm trees and colorful shop fronts, as if flying inside. As the camera pushes in, the buildings gently lift and open away to reveal the flow of traffic along the street. Soft matte clay diorama, tilt-shift miniature, warm light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth, graceful, slow motion, subtle parallax. No text, no captions.
-
----
-
-## Connector 5 — Ride → Arrival
-
-### Image 15: Connector — Ride to Arrival
-
-Single continuous cinematic camera move, no cuts. The camera smoothly pulls up and back out of the moving cars on the street, rising into the sky, then glides forward across the connected miniature world and arrives above a beautiful Lagos arrival scene — a car pulling up to a warm glowing building entrance with colorful shopfront signage, beginning to descend toward it. One connected miniature clay world, seamless flowing aerial transition. Soft matte clay diorama, tilt-shift miniature, warm golden light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth graceful slow motion. No text, no captions.
-
----
-
-## Scene 6 — The Arrival (Stills + Dive)
-
-### Image 16: Still — Arrival at Destination
-
-Isometric low-poly 3D diorama floating as a small rounded island on a plain solid #F4F1EC background with a soft contact shadow beneath it. Soft matte clay 3D render, rounded toy-model shapes, gentle warm studio lighting, soft long shadows, tilt-shift miniature look. Cohesive color palette of charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Highly detailed, centered composition, absolutely no text, no letters, no numbers, no logos.
-
-Subject: A beautiful arrival scene in miniature Lagos — a sleek clay car pulling up to the entrance of a welcoming building with colorful shopfront signage, a tiny person stepping out with a happy pose. A red destination pin glows above the building entrance. Warm golden light spills from the building doorway. The car is centered, door open, the person mid-step onto the curb. A few palm trees and streetlights frame the scene. A sense of journey complete, of arriving somewhere good. This is the hero finale — the most polished, inviting scene in the world.
-
-### Image 17: Dive — Into the Arrival
-
-Single continuous cinematic camera move, no cuts. Begin high and far, looking down at the beautiful Lagos arrival scene from outside like a tiny model. The camera slowly glides forward and descends toward it, sweeping in toward the car pulling up to the building entrance with colorful shopfront signage and the person stepping out, as if flying inside. As the camera pushes in, the building facade gently lifts and opens away to reveal the warm golden doorway and the red destination pin glowing above. Soft matte clay diorama, tilt-shift miniature, warm golden light, charcoal #1A1A1F, signal green #0E8345, warm grey #8A8A8E, cream #F4F1EC, amber #FFB84D, brick red #C5564A. Smooth, graceful, slow motion, subtle parallax. No text, no captions.
+Photorealistic wide aerial view of Lagos at dusk — the city lights are coming on, the lagoon reflects golden and amber light, bridges are lit up, the skyline glows. A few car headlights trace warm lines through the streets. The sky is a deep gradient from warm amber near the horizon to soft dark blue above. The image feels aspirational and proud — this is a city that moves. Edges fade to cream `#F4F1EC`. No text, no logos.
 
 ---
 
 ## Summary
 
-| # | Type | Scene | Filename |
-|---|------|-------|----------|
-| 1 | Still | City at Dawn | `city.webp` |
-| 2 | Dive | Into the City | `dive_city.webp` |
-| 3 | Connector | City → Request | `conn_1.webp` |
-| 4 | Still | Request at Street Corner | `request.webp` |
-| 5 | Dive | Into the Request | `dive_request.webp` |
-| 6 | Connector | Request → Match | `conn_2.webp` |
-| 7 | Still | Matching Engine | `match.webp` |
-| 8 | Dive | Into the Match | `dive_match.webp` |
-| 9 | Connector | Match → Driver | `conn_3.webp` |
-| 10 | Still | Driver Starting Shift | `driver.webp` |
-| 11 | Dive | Into the Driver | `dive_driver.webp` |
-| 12 | Connector | Driver → Ride | `conn_4.webp` |
-| 13 | Still | Three Cars in Motion | `ride.webp` |
-| 14 | Dive | Into the Ride | `dive_ride.webp` |
-| 15 | Connector | Ride → Arrival | `conn_5.webp` |
-| 16 | Still | Arrival at Destination | `arrival.webp` |
-| 17 | Dive | Into the Arrival | `dive_arrival.webp` |
+| # | Scene | File | Mood |
+|---|-------|------|------|
+| 1 | Lagos at Dawn | `01-city` | Awakening, possibility |
+| 2 | Lagos Streets | `02-streets` | Energy, everyday life |
+| 3 | The Request | `03-request` | Anticipation, simplicity |
+| 4 | The Match | `04-match` | Technology, connection |
+| 5 | The Driver | `05-driver` | Trust, professionalism |
+| 6 | The Ride | `06-ride` | Comfort, journey |
+| 7 | Fare Negotiation | `07-fare` | Transparency, choice |
+| 8 | Arrival | `08-arrival` | Satisfaction, completion |
+| 9 | Driver Earnings | `09-earnings` | Empowerment, business |
+| 10 | Lagos at Dusk | `10-closing` | Pride, aspiration |
 
-**17 desktop images.** All 16:9 landscape. Save as `.webp` to `client/public/assets/`.
+**Total: 10 desktop images + 10 mobile images = 20 files**
+
+All images should be exported as `.webp` for optimal web performance.
+Desktop: 1920×1080 (16:9). Mobile: 1080×1920 (9:16).
