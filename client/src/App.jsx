@@ -17,6 +17,7 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('muve-theme') || 'light');
   const [installEvent, setInstallEvent] = useState(null);
   const [showInstall, setShowInstall] = useState(false);
+  const [paymentVersion, setPaymentVersion] = useState(0);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -86,10 +87,10 @@ export default function App() {
       <div className="app-body">
         {/* Home stays mounted so an active ride keeps running while browsing tabs */}
         <div style={{ position: 'absolute', inset: 0, visibility: tab === 'home' ? 'visible' : 'hidden' }}>
-          {isDriver ? <DriverHome user={user} theme={theme} onToggleTheme={toggleTheme} /> : <RiderHome user={user} theme={theme} onToggleTheme={toggleTheme} />}
+          {isDriver ? <DriverHome user={user} theme={theme} onToggleTheme={toggleTheme} /> : <RiderHome user={user} theme={theme} onToggleTheme={toggleTheme} paymentVersion={paymentVersion} />}
         </div>
         {tab === 'activity' && (isDriver ? <Earnings /> : <History />)}
-        {tab === 'account' && <Profile user={user} onLogout={logout} />}
+        {tab === 'account' && <Profile user={user} onLogout={logout} onPaymentUpdate={() => setPaymentVersion((v) => v + 1)} />}
         {tab === 'settings' && <Settings user={user} onLogout={logout} />}
       </div>
       <nav className="tabbar">

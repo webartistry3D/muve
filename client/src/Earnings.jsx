@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { api, fmtMoney, fmtKm } from './api.js';
 import { Icon } from './Icons.jsx';
 
+const CATEGORY_ICONS = { Fuel: 'fuel', Repairs: 'wrench', Maintenance: 'wrench', Insurance: 'shield', Other: 'package' };
+
 export default function Earnings() {
   const [tab, setTab] = useState('income');
   const [data, setData] = useState(null);
@@ -62,7 +64,7 @@ export default function Earnings() {
           {data.recent.length === 0 && <p className="muted">Complete trips to see them here.</p>}
           {data.recent.map((r) => (
             <div className="ride-item" key={r.id}>
-              <div className="r-ico">💵</div>
+              <div className="r-ico"><Icon name="cash" size={20} /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {r.drop.addr || 'Trip'}
@@ -73,7 +75,7 @@ export default function Earnings() {
                 </div>
               </div>
               <div style={{ fontWeight: 800 }} className="num">
-                {fmtMoney(r.fare + (r.tip || 0))}
+                {fmtMoney(r.fare * 0.90 + (r.tip || 0))}
                 {r.tip > 0 && <div className="muted num" style={{ fontWeight: 600, textAlign: 'right' }}>incl. {fmtMoney(r.tip)} tip</div>}
               </div>
             </div>
@@ -128,7 +130,7 @@ export default function Earnings() {
               {expenses.expenses.length === 0 && <p className="muted">No expenses logged yet.</p>}
               {expenses.expenses.map((e) => (
                 <div className="ride-item" key={e.id}>
-                  <div className="r-ico expense-ico">{categoryIcon(e.category)}</div>
+                  <div className="r-ico expense-ico"><Icon name={CATEGORY_ICONS[e.category] || 'package'} size={20} /></div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700 }}>{e.category}</div>
                     <div className="muted">
@@ -166,9 +168,4 @@ function fmtDate(s) {
   if (!s) return '';
   const d = new Date(s + 'Z');
   return d.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' });
-}
-
-function categoryIcon(cat) {
-  const icons = { Fuel: '⛽', Repairs: '🔧', Maintenance: '🛠️', Insurance: '📋', Other: '📦' };
-  return icons[cat] || '📦';
 }

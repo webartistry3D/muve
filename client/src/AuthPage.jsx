@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api, setSession } from './api.js';
+import { Icon } from './Icons.jsx';
 
 export default function AuthPage({ onAuth }) {
   const [mode, setMode] = useState('login');
@@ -7,6 +8,7 @@ export default function AuthPage({ onAuth }) {
   const [form, setForm] = useState({ name: '', email: '', password: '', make: '', model: '', plate: '', color: '', tier: 'muvex' });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -52,7 +54,13 @@ export default function AuthPage({ onAuth }) {
         )}
 
         <div className="field"><label>Email</label><input type="email" value={form.email} onChange={set('email')} required placeholder="you@example.com" /></div>
-        <div className="field"><label>Password</label><input type="password" value={form.password} onChange={set('password')} required minLength={4} placeholder="••••••••" /></div>
+        <div className="field" style={{ position: 'relative' }}>
+          <label>Password</label>
+          <input type={showPw ? 'text' : 'password'} value={form.password} onChange={set('password')} required minLength={4} placeholder="••••••••" style={{ paddingRight: 40 }} />
+          <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} aria-label={showPw ? 'Hide password' : 'Show password'}>
+            <Icon name={showPw ? 'eyeOff' : 'eye'} size={18} />
+          </button>
+        </div>
 
         {mode === 'register' && role === 'driver' && (
           <>

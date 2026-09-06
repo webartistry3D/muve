@@ -1,9 +1,9 @@
 // Fare engine: tiers, haversine distance, surge pricing, estimates.
 
 export const TIERS = {
-  muvex:  { key: 'muvex',  name: 'MuveX',     seats: 4, base: 200, perKm: 120, perMin: 15, minFare: 500,  icon: '🚗', blurb: 'Affordable, everyday rides' },
-  muvexl: { key: 'muvexl', name: 'MuveXL',    seats: 6, base: 350, perKm: 180, perMin: 22, minFare: 800,  icon: '🚙', blurb: 'Extra room for groups' },
-  black:  { key: 'black',  name: 'Muve Black', seats: 4, base: 600, perKm: 280, perMin: 35, minFare: 1500, icon: '🏴', blurb: 'Premium rides, top drivers' },
+  muvex:  { key: 'muvex',  name: 'MuveX',     seats: 4, base: 350, perKm: 110, perMin: 20, minFare: 1000, icon: '🚗', blurb: 'Affordable, everyday rides' },
+  muvexl: { key: 'muvexl', name: 'MuveXL',    seats: 6, base: 500, perKm: 160, perMin: 28, minFare: 1500, icon: '🚙', blurb: 'Extra room for groups' },
+  black:  { key: 'black',  name: 'Muve Black', seats: 4, base: 800, perKm: 250, perMin: 40, minFare: 2000, icon: '🏴', blurb: 'Premium rides, top drivers' },
 };
 
 export function haversineM(lat1, lng1, lat2, lng2) {
@@ -15,8 +15,8 @@ export function haversineM(lat1, lng1, lat2, lng2) {
 }
 
 export function computeSurge({ activeRides, idleDrivers }) {
-  const s = 1 + 0.15 * activeRides - 0.05 * idleDrivers;
-  return Math.min(2, Math.max(1, Math.round(s * 20) / 20));
+  // inDrive model: no automated surge. Drivers bargain up instead.
+  return 1;
 }
 
 export function fareFor(tierKey, distanceM, durationS, surge = 1) {

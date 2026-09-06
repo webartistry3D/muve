@@ -51,8 +51,6 @@ export function registerRoutes(app) {
       vehicle?.make || null, vehicle?.model || null, vehicle?.plate || null,
       vehicle?.color || null, vehicle?.tier || 'muvex');
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid);
-    db.prepare("INSERT INTO payment_methods (user_id, brand, last4, label, is_default) VALUES (?,?,?,?,1)")
-      .run(user.id, 'Cash', '----', 'Cash', );
     res.json({ token: signToken(user), user: publicUser(user) });
   });
 

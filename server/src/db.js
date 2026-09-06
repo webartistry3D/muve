@@ -89,6 +89,25 @@ CREATE TABLE IF NOT EXISTS expenses (
   note TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS payments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  trip_id INTEGER NOT NULL REFERENCES rides(id),
+  rider_id INTEGER NOT NULL REFERENCES users(id),
+  driver_id INTEGER NOT NULL REFERENCES users(id),
+  paystack_reference TEXT UNIQUE NOT NULL,
+  paystack_transaction_id TEXT,
+  amount_kobo INTEGER NOT NULL,
+  commission_kobo INTEGER NOT NULL,
+  driver_earnings_kobo INTEGER NOT NULL,
+  currency TEXT DEFAULT 'NGN',
+  status TEXT DEFAULT 'PENDING',
+  paid_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_payments_trip ON payments(trip_id);
+CREATE INDEX IF NOT EXISTS idx_payments_rider ON payments(rider_id);
 `);
 
 export default db;

@@ -3,7 +3,8 @@ import {
   Car, Clock, BarChart3, User, Settings2,
   Bell, MapPin, Globe, Ruler, Zap, Star,
   FileText, Lock, HelpCircle, CreditCard, Banknote,
-  Plus, Trash2, Wrench,
+  Plus, Trash2, Wrench, Eye, EyeOff,
+  Fuel, Wrench as WrenchIcon, ShieldCheck, Package, Banknote as MoneyIcon,
 } from 'lucide-react';
 
 const iconMap = {
@@ -26,6 +27,12 @@ const iconMap = {
   plus: Plus,
   trash: Trash2,
   wrench: Wrench,
+  eye: Eye,
+  eyeOff: EyeOff,
+  fuel: Fuel,
+  shield: ShieldCheck,
+  package: Package,
+  money: MoneyIcon,
 };
 
 export const Icon = ({ name, size = 22 }) => {

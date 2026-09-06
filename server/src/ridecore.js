@@ -27,7 +27,6 @@ export function rideToJson(ride, extra = {}) {
     surge: ride.surge,
     tip: ride.tip,
     rating: ride.rating,
-    paymentMethod: ride.payment_method,
     route: ride.route_json ? JSON.parse(ride.route_json) : null,
     rider: publicUser(rider),
     driver: publicUser(driver),

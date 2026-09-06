@@ -8,6 +8,7 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 import { registerRoutes as registerAuthRoutes } from './auth.js';
 import { registerRideRoutes } from './rides.js';
+import { registerPaystackWebhook, registerPaymentRoutes } from './payments.js';
 import { registerSockets } from './sockets.js';
 import { setIO } from './state.js';
 import { startSimEngine } from './sim.js';
@@ -20,11 +21,16 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 const app = express();
 app.use(cors({ origin: [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:4321'], credentials: true }));
+
+// Webhook must be registered BEFORE express.json() to get raw body for signature verification
+registerPaystackWebhook(app);
+
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'muve', time: new Date().toISOString() }));
 registerAuthRoutes(app);
 registerRideRoutes(app);
+registerPaymentRoutes(app);
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:4321'], credentials: true } });

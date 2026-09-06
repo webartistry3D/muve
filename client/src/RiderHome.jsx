@@ -13,7 +13,7 @@ const STATUS_TEXT = {
   in_progress: ['On your trip', 'Sit back and enjoy the ride'],
 };
 
-export default function RiderHome({ user, theme, onToggleTheme }) {
+export default function RiderHome({ user, theme, onToggleTheme, paymentVersion = 0 }) {
   const [phase, setPhase] = useState('set'); // set | choose | matching | active | rate | counter
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [pickup, setPickup] = useState(null);
@@ -25,13 +25,17 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
   const [proposedFare, setProposedFare] = useState(null);
   const [useCustomFare, setUseCustomFare] = useState(false);
   const [tier, setTier] = useState('muvex');
-  const [payments, setPayments] = useState([]);
-  const [payment, setPayment] = useState('Cash');
+  const [tierOpen, setTierOpen] = useState(false);
   const [ride, setRide] = useState(null);
   const [carPos, setCarPos] = useState(null);
   const [nearby, setNearby] = useState([]);
   const [stars, setStars] = useState(5);
   const [tip, setTip] = useState(0);
+  const [paying, setPaying] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null); // null | 'pending' | 'paid' | 'failed'
+  const [payError, setPayError] = useState('');
+  const [unpaidTrips, setUnpaidTrips] = useState([]);
+  const [payingUnpaid, setPayingUnpaid] = useState(null); // tripId being paid
   const [toast, setToast] = useState('');
   const [fitKey, setFitKey] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -60,8 +64,15 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
         setFitKey((k) => k + 1);
       }
     }).catch(() => {});
-    api('/api/payments').then((d) => setPayments(d.methods)).catch(() => {});
+    loadUnpaidTrips();
   }, []);
+
+  const loadUnpaidTrips = () => {
+    api('/api/payments/unpaid').then((d) => setUnpaidTrips(d.trips || [])).catch(() => {});
+  };
+
+  // Reload unpaid trips when payment status changes (e.g. paid from Account page)
+  useEffect(() => { loadUnpaidTrips(); }, [paymentVersion]);
 
   // Socket: ride updates + live driver location
   useEffect(() => {
@@ -71,7 +82,7 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
       setRide(r);
       if (r.status === 'accepted') { setPhase('active'); setFitKey((k) => k + 1); }
       else if (r.status === 'arrived' || r.status === 'in_progress') setPhase('active');
-      else if (r.status === 'completed') { setPhase('rate'); setCarPos(null); }
+      else if (r.status === 'completed') { setPhase('rate'); setCarPos(null); checkPaymentStatus(r.id); }
       else if (r.status === 'cancelled') {
         setPhase('set'); setRide(null); setCarPos(null); setEstimate(null);
         setProposedFare(null); setUseCustomFare(false);
@@ -89,9 +100,11 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
     };
     s.on('ride:fare:rejected', onFareRejected);
     const onLoc = (loc) => setCarPos(loc);
+    const onPaymentConfirmed = () => { setPaymentStatus('paid'); showToast('Payment confirmed'); setPaying(false); };
     s.on('ride:update', onUpdate);
     s.on('driver:location', onLoc);
-    return () => { s.off('ride:update', onUpdate); s.off('driver:location', onLoc); s.off('ride:fare:rejected', onFareRejected); };
+    s.on('payment:confirmed', onPaymentConfirmed);
+    return () => { s.off('ride:update', onUpdate); s.off('driver:location', onLoc); s.off('ride:fare:rejected', onFareRejected); s.off('payment:confirmed', onPaymentConfirmed); };
   }, []);
 
   // Nearby cars while browsing
@@ -118,7 +131,7 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
   const setLocation = async (field, loc) => {
     const withAddr = loc.addr ? loc : { ...loc, addr: await reverseGeocode(loc.lat, loc.lng) };
     if (field === 'pickup') setPickup(withAddr); else setDrop(withAddr);
-    setQuery(''); setSuggestions([]);
+    setQuery(withAddr.addr || ''); setSuggestions([]);
   };
 
   // Get estimate when both endpoints set
@@ -134,7 +147,7 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
   const requestRide = async () => {
     setBusy(true);
     try {
-      const body = { pickup, drop, tier, paymentMethod: payment };
+      const body = { pickup, drop, tier };
       if (useCustomFare && proposedFare > 0) body.proposedFare = proposedFare;
       const { ride: r } = await api('/api/rides', {
         method: 'POST',
@@ -142,7 +155,14 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
       });
       setRide(r);
       setPhase('matching');
-    } catch (e) { showToast(e.message); }
+    } catch (e) {
+      if (e.message.includes('pending payment') || e.message.includes('unpaid')) {
+        loadUnpaidTrips();
+        showToast('You have an unpaid trip — please pay it first');
+      } else {
+        showToast(e.message);
+      }
+    }
     finally { setBusy(false); }
   };
 
@@ -169,10 +189,119 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
     } catch (e) { showToast(e.message); }
   };
 
+  const payUnpaidTrip = async (trip) => {
+    setPayingUnpaid(trip.id);
+    setPayError('');
+    try {
+      const d = await api('/api/payments/paystack/initialize', { method: 'POST', body: { tripId: trip.id } });
+      const payRef = d.reference;
+      if (!window.PaystackPop) {
+        if (d.authorizationUrl) window.location.href = d.authorizationUrl;
+        return;
+      }
+      const handler = window.PaystackPop.setup({
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+        email: user.email,
+        amount: Math.round((trip.fare + (trip.tip || 0)) * 100),
+        currency: 'NGN',
+        ref: payRef,
+        onClose: () => setPayingUnpaid(null),
+        callback: () => {
+          // Verify the payment
+          api('/api/payments/paystack/verify', { method: 'POST', body: { reference: payRef } })
+            .then((v) => {
+              if (v.status === 'PAID') {
+                showToast('Payment confirmed');
+                loadUnpaidTrips();
+              } else {
+                setPayError('Payment could not be verified. Please try again.');
+              }
+              setPayingUnpaid(null);
+            })
+            .catch(() => { setPayError('Verification failed'); setPayingUnpaid(null); });
+        },
+      });
+      handler.openIframe();
+    } catch (e) {
+      setPayError(e.message || 'Payment failed to start');
+      setPayingUnpaid(null);
+    }
+  };
+
+  const checkPaymentStatus = async (tripId) => {
+    try {
+      const d = await api(`/api/payments/${tripId}/status`);
+      setPaymentStatus(d.status);
+    } catch { /* no payment record yet */ }
+  };
+
+  const initViaBackend = async () => {
+    try {
+      const d = await api('/api/payments/paystack/initialize', { method: 'POST', body: { tripId: ride.id } });
+      setPaymentStatus('pending');
+      if (d.authorizationUrl) window.location.href = d.authorizationUrl;
+    } catch (e) {
+      setPayError(e.message || 'Payment failed to start');
+      setPaying(false);
+    }
+  };
+
+  const startPaystackPayment = async () => {
+    setPaying(true);
+    setPayError('');
+    try {
+      const d = await api('/api/payments/paystack/initialize', { method: 'POST', body: { tripId: ride.id, tip } });
+      const payRef = d.reference;
+      if (!window.PaystackPop) {
+        if (d.authorizationUrl) window.location.href = d.authorizationUrl;
+        return;
+      }
+      const handler = window.PaystackPop.setup({
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+        email: user.email,
+        amount: d.amountKobo,
+        currency: 'NGN',
+        ref: payRef,
+        onClose: () => setPaying(false),
+        callback: () => {
+          setPaymentStatus('pending');
+          verifyPayment(payRef);
+        },
+      });
+      handler.openIframe();
+    } catch (e) {
+      setPayError(e.message || 'Payment failed to start');
+      setPaying(false);
+    }
+  };
+
+  const verifyPayment = async (reference) => {
+    try {
+      const d = await api('/api/payments/paystack/verify', { method: 'POST', body: { reference } });
+      if (d.status === 'PAID') {
+        setPaymentStatus('paid');
+        showToast('Payment confirmed');
+        setPaying(false);
+      } else {
+        setPaymentStatus('failed');
+        setPayError('Payment could not be verified. Please try again.');
+        setPaying(false);
+      }
+    } catch (e) {
+      setPayError(e.message || 'Verification failed');
+      setPaying(false);
+    }
+  };
+
   const submitRating = async () => {
+    if (paymentStatus !== 'paid') {
+      setPayError('Please complete payment before finishing');
+      return;
+    }
     try { await api(`/api/rides/${ride.id}/rate`, { method: 'POST', body: { rating: stars, tip } }); }
     catch { /* already rated / non-fatal */ }
     setPhase('set'); setRide(null); setDrop(null); setEstimate(null); setStars(5); setTip(0);
+    setPaymentStatus(null); setPayError('');
     showToast('Thanks for riding with muve!');
   };
 
@@ -218,23 +347,28 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
 
         {(phase === 'set' || phase === 'choose') && (
           <>
+            {unpaidTrips.length > 0 && (
+              <div className="unpaid-notice">
+                You have {unpaidTrips.length} unpaid trip{unpaidTrips.length > 1 ? 's' : ''}. Go to Account → Payments to settle.
+              </div>
+            )}
             <h3 className="sheet-title">Where to, {user.name.split(' ')[0]}?</h3>
-            <div className={`loc-input ${activeField === 'pickup' ? 'active' : ''}`} onClick={() => setActiveField('pickup')}>
+            <div className={`loc-input ${activeField === 'pickup' ? 'active' : ''}`} onClick={() => { setActiveField('pickup'); setQuery(pickup?.addr || ''); }}>
               <span className="dot green" />
               <input
                 placeholder="Where from?"
-                value={activeField === 'pickup' && query ? query : (pickup?.addr || '')}
+                value={activeField === 'pickup' ? query : (pickup?.addr || '')}
                 onChange={(e) => { setActiveField('pickup'); setQuery(e.target.value); if (!e.target.value) { setPickup(null); setDrop(null); setEstimate(null); setPhase('set'); } }}
-                onFocus={() => setActiveField('pickup')}
+                onFocus={() => { setActiveField('pickup'); setQuery(pickup?.addr || ''); }}
               />
             </div>
-            <div className={`loc-input ${activeField === 'drop' ? 'active' : ''}`} onClick={() => setActiveField('drop')}>
+            <div className={`loc-input ${activeField === 'drop' ? 'active' : ''}`} onClick={() => { setActiveField('drop'); setQuery(drop?.addr || ''); }}>
               <span className="dot red" />
               <input
                 placeholder="Where to?"
-                value={activeField === 'drop' && query ? query : (drop?.addr || '')}
-                onChange={(e) => { setActiveField('drop'); setQuery(e.target.value); }}
-                onFocus={() => setActiveField('drop')}
+                value={activeField === 'drop' ? query : (drop?.addr || '')}
+                onChange={(e) => { setActiveField('drop'); setQuery(e.target.value); if (!e.target.value) { setDrop(null); setEstimate(null); setPhase('set'); } }}
+                onFocus={() => { setActiveField('drop'); setQuery(drop?.addr || ''); }}
               />
             </div>
             {suggestions.length > 0 && (
@@ -248,26 +382,32 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
 
             {phase === 'choose' && estimate && (
               <div style={{ marginTop: 12 }}>
-                {estimate.tiers.map((t) => (
-                  <button key={t.key} className={`tier ${tier === t.key ? 'active' : ''}`} onClick={() => setTier(t.key)}>
-                    <span className="t-icon">{t.icon}</span>
-                    <span>
-                      <div className="t-name">{t.name} <span className="muted">· {t.seats} seats</span>
-                        {t.surge > 1 && <span className="surge-tag">{t.surge}x surge</span>}
-                      </div>
-                      <div className="t-sub">{t.blurb}</div>
+                <div className="tier-dropdown">
+                  <button className="tier-dropdown-trigger" onClick={() => setTierOpen(!tierOpen)}>
+                    <span className="t-icon">{selectedTier?.icon}</span>
+                    <span style={{ flex: 1, textAlign: 'left' }}>
+                      <span className="t-name">{selectedTier?.name}</span>
+                      <span className="muted" style={{ fontSize: 12 }}> · {selectedTier?.seats} seats</span>
+                      {selectedTier?.surge > 1 && <span className="surge-tag">{selectedTier.surge}x surge</span>}
                     </span>
-                    <span className="t-fare">{fmtMoney(t.fare)}</span>
+                    <span className="t-fare">{fmtMoney(selectedTier?.fare)}</span>
+                    <span className="tier-caret">▾</span>
                   </button>
-                ))}
-                <div className="row spread" style={{ margin: '10px 0 12px' }}>
-                  <span className="muted">Payment</span>
-                  <select value={payment} onChange={(e) => setPayment(e.target.value)}
-                    style={{ border: '1.5px solid var(--line)', borderRadius: 8, padding: '6px 10px', background: 'var(--surface)', color: 'var(--ink)' }}>
-                    {payments.map((p) => (
-                      <option key={p.id} value={p.label || p.brand}>{p.label || `${p.brand} •••• ${p.last4}`}</option>
-                    ))}
-                  </select>
+                  {tierOpen && (
+                    <div className="tier-dropdown-menu">
+                      {estimate.tiers.map((t) => (
+                        <button key={t.key} className={`tier-option ${tier === t.key ? 'active' : ''}`}
+                          onClick={() => { setTier(t.key); setTierOpen(false); setUseCustomFare(false); setProposedFare(null); }}>
+                          <span className="t-icon">{t.icon}</span>
+                          <span style={{ flex: 1, textAlign: 'left' }}>
+                            <div className="t-name">{t.name} <span className="muted">· {t.seats} seats</span></div>
+                            <div className="t-sub">{t.blurb}</div>
+                          </span>
+                          <span className="t-fare">{fmtMoney(t.fare)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="fare-propose" style={{ marginBottom: 12 }}>
                   <button className="fare-propose-toggle" onClick={() => { setUseCustomFare(!useCustomFare); setProposedFare(useCustomFare ? null : selectedTier?.fare); }}>
@@ -347,7 +487,7 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
               </div>
             )}
             <div className="row spread" style={{ marginBottom: 12 }}>
-              <span className="muted"><span className="num">{fmtKm(ride.distanceM)} · {fmtMin(ride.durationS)}</span> · {ride.paymentMethod}</span>
+              <span className="muted"><span className="num">{fmtKm(ride.distanceM)} · {fmtMin(ride.durationS)}</span></span>
               <span className="big">{fmtMoney(ride.fare)}</span>
             </div>
             {['accepted', 'arrived'].includes(ride.status) && (
@@ -359,22 +499,42 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
         {phase === 'rate' && ride && (
           <div style={{ textAlign: 'center' }}>
             <div className="s-title" style={{ fontSize: 20, fontWeight: 800 }}>You’ve arrived 🎉</div>
-            <div className="muted" style={{ margin: '6px 0 4px' }}>Total charged to {ride.paymentMethod}</div>
+            <div className="muted" style={{ margin: '6px 0 4px' }}>Total fare</div>
             <div className="big" style={{ fontSize: 32 }}>{fmtMoney(ride.fare + tip)}</div>
-            <div className="muted" style={{ marginTop: 14 }}>Rate {ride.driver?.name?.split(' ')[0] || 'your driver'}</div>
-            <div className="stars">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} className={n <= stars ? 'on' : ''} onClick={() => setStars(n)}>★</button>
-              ))}
-            </div>
-            <div className="tip-row">
-              {[0, 200, 500, 1000].map((t) => (
-                <button key={t} className={`tip-btn ${tip === t ? 'active' : ''}`} onClick={() => setTip(t)}>
-                  {t === 0 ? 'No tip' : fmtMoney(t)}
+
+            {paymentStatus === 'paid' ? (
+              <>
+                <div className="muted" style={{ marginTop: 14, color: 'var(--green, #16a34a)', fontWeight: 700 }}>✓ Payment confirmed</div>
+                <div className="muted" style={{ marginTop: 14 }}>Rate {ride.driver?.name?.split(' ')[0] || 'your driver'}</div>
+                <div className="stars">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button key={n} className={n <= stars ? 'on' : ''} onClick={() => setStars(n)}>★</button>
+                  ))}
+                </div>
+                <button className="btn btn-dark btn-block" onClick={submitRating}>Done</button>
+              </>
+            ) : (
+              <>
+                <div className="muted" style={{ marginTop: 14 }}>Rate {ride.driver?.name?.split(' ')[0] || 'your driver'}</div>
+                <div className="stars">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button key={n} className={n <= stars ? 'on' : ''} onClick={() => setStars(n)}>★</button>
+                  ))}
+                </div>
+                <div className="tip-row">
+                  {[0, 200, 500, 1000].map((t) => (
+                    <button key={t} className={`tip-btn ${tip === t ? 'active' : ''}`} onClick={() => setTip(t)}>
+                      {t === 0 ? 'No tip' : fmtMoney(t)}
+                    </button>
+                  ))}
+                </div>
+                {payError && <div className="muted" style={{ color: 'var(--red, #d6323e)', margin: '8px 0' }}>{payError}</div>}
+                {paymentStatus === 'pending' && <div className="muted" style={{ margin: '8px 0' }}>Confirming payment…</div>}
+                <button className="btn btn-dark btn-block" onClick={startPaystackPayment} disabled={paying}>
+                  {paying ? 'Processing…' : `Pay ${fmtMoney(ride.fare + tip)} with Paystack`}
                 </button>
-              ))}
-            </div>
-            <button className="btn btn-dark btn-block" onClick={submitRating}>Done</button>
+              </>
+            )}
           </div>
         )}
       </div>

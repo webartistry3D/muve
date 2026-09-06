@@ -26,7 +26,7 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
   const posRef = useRef(null);
   posRef.current = pos;
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 4000); };
+  const showToast = (msg) => { setToast(msg); };
 
   // Boot: geolocate + resume active ride
   useEffect(() => {
@@ -51,14 +51,16 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
     const onOfferClosed = () => setOffer(null);
     const onUpdate = (r) => {
       setRide(['completed', 'cancelled'].includes(r.status) ? null : r);
-      if (r.status === 'completed') showToast(`Trip complete — you earned ${fmtMoney(r.fare + (r.tip || 0))}`);
+      if (r.status === 'completed') showToast('Trip complete — waiting for rider payment');
       if (r.status === 'cancelled') showToast('Ride was cancelled');
       if (r.status === 'accepted') { setOffer(null); setFitKey((k) => k + 1); }
     };
     s.on('ride:offer', onOffer);
     s.on('ride:offer:closed', onOfferClosed);
     s.on('ride:update', onUpdate);
-    return () => { s.off('ride:offer', onOffer); s.off('ride:offer:closed', onOfferClosed); s.off('ride:update', onUpdate); };
+    const onPaymentConfirmed = (data) => showToast(`Payment confirmed — ${fmtMoney(data.driverEarnings)}`);
+    s.on('payment:confirmed', onPaymentConfirmed);
+    return () => { s.off('ride:offer', onOffer); s.off('ride:offer:closed', onOfferClosed); s.off('ride:update', onUpdate); s.off('payment:confirmed', onPaymentConfirmed); };
   }, []);
 
   // Offer countdown
@@ -137,7 +139,7 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
     try {
       const { ride: r } = await api(`/api/rides/${ride.id}/${action}`, { method: 'POST' });
       setRide(['completed', 'cancelled'].includes(r.status) ? null : r);
-      if (r.status === 'completed') showToast(`Trip complete — you earned ${fmtMoney(r.fare)}`);
+      if (r.status === 'completed') showToast('Trip complete — waiting for rider payment');
     } catch (e) { showToast(e.message); }
   };
 
@@ -167,29 +169,37 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
       <div className="topbar">
         <div className="brand-chip">muve</div>
         <div className="topbar-right">
-          <div className="chip">{online ? '🟢 Online' : '⚫ Offline'}</div>
+          <button className={`status-chip ${online ? 'online' : 'offline'}`} onClick={toggleOnline}>
+            <span className="status-dot" />
+            {online ? 'Online' : 'Offline'}
+          </button>
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         </div>
       </div>
-      {toast && <div className="toast">{toast}</div>}
+      {toast && (
+        <div className="toast toast-dismissible">
+          <span>{toast}</span>
+          <button className="toast-close" onClick={() => setToast('')}>×</button>
+        </div>
+      )}
 
-      {!ride && (
+      {/* {!ride && (
         <button className={`go-btn ${online ? 'on' : 'off'}`} onClick={toggleOnline}>
           {online ? 'STOP' : 'GO'}
         </button>
-      )}
+      )} */}
 
       {!ride && (
         <div className="sheet" style={{ maxHeight: '22%' }}>
           <div className="sheet-grab" />
           <div className="row spread">
             <div>
-              <div style={{ fontWeight: 800, fontSize: 17 }}>{online ? 'You’re online' : 'You’re offline'}</div>
-              <div className="muted">{online ? 'Waiting for ride requests…' : 'Tap GO to start earning'}</div>
+              <div style={{ fontWeight: 800, fontSize: 17 }}>{online ? "You're online" : "You're offline"}</div>
+              <div className="muted">{online ? 'Waiting for ride requests…' : 'Tap the offline button to start earning'}</div>
             </div>
             {online && <div className="spinner" />}
           </div>
-          {online && <div className="hint" style={{ textAlign: 'left', marginTop: 8 }}>You're online — waiting for ride requests.</div>}
+          {online && <div className="hint" style={{ textAlign: 'left', marginTop: 8 }}>{"You're online — waiting for ride requests."}</div>}
         </div>
       )}
 
@@ -206,7 +216,7 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
             <div className="avatar">{ride.rider?.name?.[0] || '?'}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 800 }}>{ride.rider?.name}</div>
-              <div className="muted"><span className="num">{fmtKm(ride.distanceM)} · {fmtMin(ride.durationS)}</span> · {ride.paymentMethod}</div>
+              <div className="muted"><span className="num">{fmtKm(ride.distanceM)} · {fmtMin(ride.durationS)}</span></div>
             </div>
             <div className="big">{fmtMoney(ride.fare)}</div>
           </div>

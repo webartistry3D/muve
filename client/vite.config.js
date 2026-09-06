@@ -22,6 +22,12 @@ export default defineConfig(({ command }) => ({
           if (req.url === '/app' || req.url === '/app/') {
             req.url = '/app.html';
           }
+          // In dev, /app/* public assets (manifest, icons, sw) are served from root
+          if (req.url.startsWith('/app/manifest.webmanifest') ||
+              req.url.startsWith('/app/icon-') ||
+              req.url.startsWith('/app/sw.js')) {
+            req.url = req.url.replace('/app/', '/');
+          }
           next();
         });
       },

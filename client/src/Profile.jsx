@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api } from './api.js';
+import { api, fmtMoney, fmtKm } from './api.js';
 import Icon from './Icons.jsx';
 
 const ID_TYPES = [
@@ -11,10 +11,8 @@ const ID_TYPES = [
 
 const NG_STATES = ['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','FCT','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara'];
 
-export default function Profile({ user, onLogout }) {
-  const [methods, setMethods] = useState([]);
-  const [adding, setAdding] = useState(false);
-  const [card, setCard] = useState({ brand: 'Visa', last4: '' });
+export default function Profile({ user, onLogout, onPaymentUpdate }) {
+  const [tab, setTab] = useState('profile');
 
   // KYC state
   const [kyc, setKyc] = useState(null);
@@ -23,18 +21,15 @@ export default function Profile({ user, onLogout }) {
   const [kycBusy, setKycBusy] = useState(false);
   const [kycError, setKycError] = useState('');
 
-  const loadPayments = () => api('/api/payments').then((d) => setMethods(d.methods)).catch(() => {});
-  const loadKyc = () => api('/api/kyc').then((d) => setKyc(d.kyc)).catch(() => {});
-  useEffect(() => { loadPayments(); loadKyc(); }, []);
+  // Unpaid trips state
+  const [unpaidTrips, setUnpaidTrips] = useState([]);
+  const [payingUnpaid, setPayingUnpaid] = useState(null);
+  const [payError, setPayError] = useState('');
+  const [payToast, setPayToast] = useState('');
 
-  const addCard = async (e) => {
-    e.preventDefault();
-    if (card.last4.length !== 4) return;
-    await api('/api/payments', { method: 'POST', body: card });
-    setCard({ brand: 'Visa', last4: '' });
-    setAdding(false);
-    loadPayments();
-  };
+  const loadKyc = () => api('/api/kyc').then((d) => setKyc(d.kyc)).catch(() => {});
+  const loadUnpaidTrips = () => api('/api/payments/unpaid').then((d) => setUnpaidTrips(d.trips || [])).catch(() => {});
+  useEffect(() => { loadKyc(); loadUnpaidTrips(); }, []);
 
   const submitKyc = async (e) => {
     e.preventDefault();
@@ -65,6 +60,46 @@ export default function Profile({ user, onLogout }) {
     setEditingKyc(true);
   };
 
+  const payUnpaidTrip = async (trip) => {
+    setPayingUnpaid(trip.id);
+    setPayError('');
+    try {
+      const d = await api('/api/payments/paystack/initialize', { method: 'POST', body: { tripId: trip.id, tip: trip.tip || 0 } });
+      const payRef = d.reference;
+      if (!window.PaystackPop) {
+        if (d.authorizationUrl) window.location.href = d.authorizationUrl;
+        return;
+      }
+      const handler = window.PaystackPop.setup({
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+        email: user.email,
+        amount: d.amountKobo,
+        currency: 'NGN',
+        ref: payRef,
+        onClose: () => setPayingUnpaid(null),
+        callback: () => {
+          api('/api/payments/paystack/verify', { method: 'POST', body: { reference: payRef } })
+            .then((v) => {
+              if (v.status === 'PAID') {
+                setPayToast('Payment confirmed');
+                setTimeout(() => setPayToast(''), 3500);
+                loadUnpaidTrips();
+                onPaymentUpdate?.();
+              } else {
+                setPayError('Payment could not be verified. Please try again.');
+              }
+              setPayingUnpaid(null);
+            })
+            .catch(() => { setPayError('Verification failed'); setPayingUnpaid(null); });
+        },
+      });
+      handler.openIframe();
+    } catch (e) {
+      setPayError(e.message || 'Payment failed to start');
+      setPayingUnpaid(null);
+    }
+  };
+
   const kycStatusBadge = (status) => {
     const map = { pending: 'kyc-pending', verified: 'kyc-verified', rejected: 'kyc-rejected' };
     return <span className={`kyc-badge ${map[status] || 'kyc-pending'}`}>{status}</span>;
@@ -72,6 +107,7 @@ export default function Profile({ user, onLogout }) {
 
   return (
     <div className="page">
+      {payToast && <div className="toast">{payToast}</div>}
       <h2>Account</h2>
       <div className="card">
         <div className="row">
@@ -87,25 +123,32 @@ export default function Profile({ user, onLogout }) {
         </div>
       </div>
 
-      {/* KYC Section — rider & driver */}
-      <div className="card">
-        <div className="row spread" style={{ marginBottom: 8 }}>
-          <div className="row" style={{ gap: 8, fontWeight: 800 }}>
-            <Icon name="lock" size={18} /> Identity Verification (KYC)
-          </div>
-          {kyc && !editingKyc && kycStatusBadge(kyc.status)}
-        </div>
+      <div className="tabs">
+        <button className={`tab ${tab === 'profile' ? 'active' : ''}`} onClick={() => setTab('profile')}>Profile</button>
+        <button className={`tab ${tab === 'payments' ? 'active' : ''}`} onClick={() => setTab('payments')}>
+          Payments{unpaidTrips.length > 0 && <span className="tab-badge">{unpaidTrips.length}</span>}
+        </button>
+      </div>
 
-        {!kyc && !editingKyc && (
-          <>
-            <p className="set-sub" style={{ marginBottom: 12 }}>
-              {user.role === 'driver'
-                ? 'Verify your identity to drive with muve. Required before you can accept rides.'
-                : 'Verify your identity to ride with muve. Required for cashless payments.'}
-            </p>
-            <button className="btn btn-dark btn-block" onClick={startEditKyc}>
-              <span className="row" style={{ gap: 6 }}><Icon name="plus" size={18} /> Start verification</span>
-            </button>
+      {tab === 'profile' && (
+        <div className="card">
+          <div className="row spread" style={{ marginBottom: 8 }}>
+            <div className="row" style={{ gap: 8, fontWeight: 800 }}>
+              <Icon name="lock" size={18} /> Identity Verification (KYC)
+            </div>
+            {kyc && !editingKyc && kycStatusBadge(kyc.status)}
+          </div>
+
+          {!kyc && !editingKyc && (
+            <>
+              <p className="set-sub" style={{ marginBottom: 12 }}>
+                {user.role === 'driver'
+                  ? 'Verify your identity to drive with muve. Required before you can accept rides.'
+                  : 'Verify your identity to ride with muve.'}
+              </p>
+              <button className="btn btn-dark btn-block" onClick={startEditKyc}>
+                <span className="row" style={{ gap: 6 }}><Icon name="plus" size={18} /> Start verification</span>
+              </button>
             </>
           )}
 
@@ -200,47 +243,45 @@ export default function Profile({ user, onLogout }) {
               </div>
             </form>
           )}
-      </div>
-
-      <div className="card">
-        <div className="row spread" style={{ marginBottom: 8 }}>
-          <div style={{ fontWeight: 800 }}>Payment methods</div>
-          <button className="link-btn" onClick={() => setAdding(!adding)}>
-            {adding ? 'Close' : (<span className="row" style={{ gap: 4 }}><Icon name="plus" size={16} /> Add card</span>)}
-          </button>
         </div>
-        {methods.map((m) => (
-          <div className="row spread" key={m.id} style={{ padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
-            <span className="row" style={{ gap: 10 }}>
-              <Icon name={m.brand === 'Cash' ? 'cash' : 'card'} size={20} />
-              {m.label || <span className="num">{`${m.brand} •••• ${m.last4}`}</span>}
-            </span>
-            {m.brand !== 'Cash' && (
-              <button className="btn-ghost row" style={{ gap: 4 }} onClick={async () => { await api(`/api/payments/${m.id}`, { method: 'DELETE' }); loadPayments(); }}>
-                <Icon name="trash" size={16} /> Remove
-              </button>
-            )}
-          </div>
-        ))}
-        {adding && (
-          <form onSubmit={addCard} style={{ marginTop: 12 }}>
-            <div className="vehicle-grid">
-              <div className="field">
-                <label>Brand</label>
-                <select value={card.brand} onChange={(e) => setCard({ ...card, brand: e.target.value })}>
-                  <option>Visa</option><option>Mastercard</option><option>Amex</option><option>Verve</option>
-                </select>
-              </div>
-              <div className="field">
-                <label>Last 4 digits</label>
-                <input className="num" value={card.last4} maxLength={4} pattern="\d{4}" required placeholder="4242"
-                  onChange={(e) => setCard({ ...card, last4: e.target.value.replace(/\D/g, '') })} />
-              </div>
-            </div>
-            <button className="btn btn-dark btn-block">Save card</button>
-          </form>
-        )}
-      </div>
+      )}
+
+      {tab === 'payments' && (
+        <div className="card">
+          <div style={{ fontWeight: 800, marginBottom: 12 }}>Payment History</div>
+
+          {unpaidTrips.length > 0 && (
+            <>
+              <div className="unpaid-title" style={{ marginBottom: 8 }}>Unpaid trips</div>
+              {unpaidTrips.map((t) => (
+                <div key={t.id} className="unpaid-item">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {t.drop_addr || 'Trip'}
+                    </div>
+                    <div className="muted" style={{ fontSize: 12 }}>
+                      {t.driver_name} · <span className="num">{fmtKm(t.distance_m)}</span>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div className="num" style={{ fontWeight: 800 }}>{fmtMoney(t.fare + (t.tip || 0))}</div>
+                    <button className="btn btn-dark" style={{ padding: '6px 14px', fontSize: 13, marginTop: 4 }}
+                      disabled={payingUnpaid === t.id}
+                      onClick={() => payUnpaidTrip(t)}>
+                      {payingUnpaid === t.id ? 'Processing…' : 'Pay now'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {payError && <div className="muted" style={{ color: 'var(--red, #d6323e)', fontSize: 12, marginTop: 8 }}>{payError}</div>}
+            </>
+          )}
+
+          {unpaidTrips.length === 0 && (
+            <p className="muted">No unpaid trips. All settled. 🎉</p>
+          )}
+        </div>
+      )}
 
       {/* <button className="btn btn-light btn-block btn-red" style={{ background: 'rgba(214,50,62,.12)', color: 'var(--red)', border: 'none' }} onClick={onLogout}>
         Log out

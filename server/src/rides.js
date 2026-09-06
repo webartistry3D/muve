@@ -40,13 +40,22 @@ export function registerRideRoutes(app) {
   // Request a ride
   app.post('/api/rides', authRequired, async (req, res) => {
     if (req.user.role !== 'rider') return res.status(403).json({ error: 'Only riders can request rides' });
-    const { pickup, drop, tier, paymentMethod, proposedFare } = req.body || {};
+    const { pickup, drop, tier, proposedFare } = req.body || {};
     if (!pickup?.lat || !drop?.lat || !TIERS[tier]) return res.status(400).json({ error: 'pickup, drop and valid tier required' });
 
     const existing = db.prepare(
       `SELECT * FROM rides WHERE rider_id = ? AND status IN (${ACTIVE_STATUSES.map(() => '?').join(',')})`
     ).get(req.user.id, ...ACTIVE_STATUSES);
     if (existing) return res.status(409).json({ error: 'You already have an active ride', ride: rideToJson(existing) });
+
+    // Block new ride if rider has a pending payment (started but didn't finish)
+    const pending = db.prepare(`
+      SELECT p.trip_id FROM payments p
+      JOIN rides r ON r.id = p.trip_id
+      WHERE p.rider_id = ? AND p.status = 'PENDING'
+      LIMIT 1
+    `).get(req.user.id);
+    if (pending) return res.status(402).json({ error: 'You have a pending payment. Please complete it before requesting a new ride.', unpaidTripId: pending.trip_id });
 
     const route = await getRoute(pickup.lat, pickup.lng, drop.lat, drop.lng);
     const surge = currentSurge();
@@ -55,16 +64,19 @@ export function registerRideRoutes(app) {
     // If rider proposed a fare, use it as the proposed fare; fare_status starts as 'proposed'
     // If no proposal, fare = suggested fare and status is 'agreed' (standard flow)
     const hasProposal = proposedFare != null && Number(proposedFare) > 0;
+    if (hasProposal && Number(proposedFare) < TIERS[tier].minFare) {
+      return res.status(400).json({ error: `Your offer must be at least ₦${TIERS[tier].minFare}` });
+    }
     const fare = hasProposal ? Number(proposedFare) : suggestedFare;
     const fareStatus = hasProposal ? 'proposed' : 'agreed';
 
     const info = db.prepare(`
       INSERT INTO rides (rider_id, status, tier, pickup_lat, pickup_lng, pickup_addr,
-        drop_lat, drop_lng, drop_addr, distance_m, duration_s, fare, suggested_fare, proposed_fare, fare_status, surge, payment_method, route_json)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        drop_lat, drop_lng, drop_addr, distance_m, duration_s, fare, suggested_fare, proposed_fare, fare_status, surge, route_json)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(req.user.id, 'requested', tier, pickup.lat, pickup.lng, pickup.addr || null,
       drop.lat, drop.lng, drop.addr || null, Math.round(route.distanceM), Math.round(route.durationS),
-      fare, suggestedFare, hasProposal ? fare : null, fareStatus, surge, paymentMethod || 'Cash', JSON.stringify(route.points));
+      fare, suggestedFare, hasProposal ? fare : null, fareStatus, surge, JSON.stringify(route.points));
 
     const ride = getRide(info.lastInsertRowid);
     res.json({ ride: rideToJson(ride) });
@@ -198,13 +210,14 @@ export function registerRideRoutes(app) {
     res.json({ ride: rideToJson(updated) });
   });
 
-  // Driver earnings dashboard
+  // Driver earnings dashboard (driver earns 90% of fare + 100% of tip)
   app.get('/api/driver/earnings', authRequired, (req, res) => {
     if (req.user.role !== 'driver') return res.status(403).json({ error: 'Drivers only' });
     const all = db.prepare(
       "SELECT * FROM rides WHERE driver_id = ? AND status = 'completed' ORDER BY id DESC"
     ).all(req.user.id);
-    const sum = (rows) => Math.round(rows.reduce((s, r) => s + r.fare + r.tip, 0) * 100) / 100;
+    // Driver earnings = fare × 90% + tip (Muve retains 10% commission on fare)
+    const sum = (rows) => Math.round(rows.reduce((s, r) => s + r.fare * 0.90 + r.tip, 0) * 100) / 100;
     const today = new Date().toISOString().slice(0, 10);
     const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
     res.json({
@@ -288,24 +301,5 @@ export function registerRideRoutes(app) {
       .sort((a, b) => a.dist - b.dist)
       .slice(0, 12);
     res.json({ drivers: near });
-  });
-
-  // Mock payment methods
-  app.get('/api/payments', authRequired, (req, res) => {
-    const methods = db.prepare('SELECT * FROM payment_methods WHERE user_id = ?').all(req.user.id);
-    res.json({ methods });
-  });
-  app.post('/api/payments', authRequired, (req, res) => {
-    const { brand, last4, label } = req.body || {};
-    if (!brand || !last4) return res.status(400).json({ error: 'brand and last4 required' });
-    db.prepare('INSERT INTO payment_methods (user_id, brand, last4, label) VALUES (?,?,?,?)')
-      .run(req.user.id, brand, String(last4).slice(-4), label || `${brand} •••• ${String(last4).slice(-4)}`);
-    const methods = db.prepare('SELECT * FROM payment_methods WHERE user_id = ?').all(req.user.id);
-    res.json({ methods });
-  });
-  app.delete('/api/payments/:id', authRequired, (req, res) => {
-    db.prepare('DELETE FROM payment_methods WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
-    const methods = db.prepare('SELECT * FROM payment_methods WHERE user_id = ?').all(req.user.id);
-    res.json({ methods });
   });
 }

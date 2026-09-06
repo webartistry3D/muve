@@ -17,6 +17,8 @@ services:
         sync: false  # Mapbox API token for Directions API
       - key: SIM_MODE
         value: "false"  # Disable simulated drivers in production
+      - key: PAYSTACK_SECRET_KEY
+        sync: false  # Set in Render dashboard — server only, never expose to frontend
 
   # Frontend — landing page + React app
   - type: web
@@ -31,3 +33,5 @@ services:
         sync: false  # Set to the backend URL after deploying the API
       - key: VITE_MAPBOX_TOKEN
         sync: false  # Mapbox token for map tiles + geocoding
+      - key: VITE_PAYSTACK_PUBLIC_KEY
+        sync: false  # Paystack public key for checkout popup
