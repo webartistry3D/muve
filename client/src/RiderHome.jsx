@@ -14,7 +14,7 @@ const STATUS_TEXT = {
 };
 
 export default function RiderHome({ user, theme, onToggleTheme }) {
-  const [phase, setPhase] = useState('set'); // set | choose | matching | active | rate
+  const [phase, setPhase] = useState('set'); // set | choose | matching | active | rate | counter
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [pickup, setPickup] = useState(null);
   const [drop, setDrop] = useState(null);
@@ -22,6 +22,8 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [estimate, setEstimate] = useState(null);
+  const [proposedFare, setProposedFare] = useState(null);
+  const [useCustomFare, setUseCustomFare] = useState(false);
   const [tier, setTier] = useState('muvex');
   const [payments, setPayments] = useState([]);
   const [payment, setPayment] = useState('Cash');
@@ -72,13 +74,24 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
       else if (r.status === 'completed') { setPhase('rate'); setCarPos(null); }
       else if (r.status === 'cancelled') {
         setPhase('set'); setRide(null); setCarPos(null); setEstimate(null);
+        setProposedFare(null); setUseCustomFare(false);
         showToast(r.cancelledBy === 'system' ? 'No drivers available right now' : 'Ride cancelled');
       }
+      else if (r.status === 'matching' && r.fareStatus === 'countered') {
+        setPhase('counter');
+      }
+      else if (r.status === 'matching' && r.fareStatus === 'agreed' && phase === 'counter') {
+        setPhase('matching');
+      }
     };
+    const onFareRejected = () => {
+      showToast('Driver rejected your proposed fare');
+    };
+    s.on('ride:fare:rejected', onFareRejected);
     const onLoc = (loc) => setCarPos(loc);
     s.on('ride:update', onUpdate);
     s.on('driver:location', onLoc);
-    return () => { s.off('ride:update', onUpdate); s.off('driver:location', onLoc); };
+    return () => { s.off('ride:update', onUpdate); s.off('driver:location', onLoc); s.off('ride:fare:rejected', onFareRejected); };
   }, []);
 
   // Nearby cars while browsing
@@ -121,14 +134,31 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
   const requestRide = async () => {
     setBusy(true);
     try {
+      const body = { pickup, drop, tier, paymentMethod: payment };
+      if (useCustomFare && proposedFare > 0) body.proposedFare = proposedFare;
       const { ride: r } = await api('/api/rides', {
         method: 'POST',
-        body: { pickup, drop, tier, paymentMethod: payment },
+        body,
       });
       setRide(r);
       setPhase('matching');
     } catch (e) { showToast(e.message); }
     finally { setBusy(false); }
+  };
+
+  const acceptCounter = async () => {
+    try {
+      await api(`/api/rides/${ride.id}/accept-counter`, { method: 'POST' });
+      setPhase('matching');
+    } catch (e) { showToast(e.message); }
+  };
+
+  const declineCounter = async () => {
+    try {
+      await api(`/api/rides/${ride.id}/decline-counter`, { method: 'POST' });
+      setPhase('set'); setRide(null); setCarPos(null); setEstimate(null);
+      setProposedFare(null); setUseCustomFare(false);
+    } catch (e) { showToast(e.message); }
   };
 
   const cancelRide = async () => {
@@ -177,7 +207,7 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
       <div className="topbar">
         <div className="brand-chip">muve</div>
         <div className="topbar-right">
-          {estimate && phase === 'choose' && <div className="chip">{fmtKm(estimate.distanceM)} · {fmtMin(estimate.durationS)}</div>}
+          {estimate && phase === 'choose' && <div className="chip num">{fmtKm(estimate.distanceM)} · {fmtMin(estimate.durationS)}</div>}
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         </div>
       </div>
@@ -194,7 +224,7 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
               <input
                 placeholder="Where from?"
                 value={activeField === 'pickup' && query ? query : (pickup?.addr || '')}
-                onChange={(e) => { setActiveField('pickup'); setQuery(e.target.value); }}
+                onChange={(e) => { setActiveField('pickup'); setQuery(e.target.value); if (!e.target.value) { setPickup(null); setDrop(null); setEstimate(null); setPhase('set'); } }}
                 onFocus={() => setActiveField('pickup')}
               />
             </div>
@@ -239,9 +269,27 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
                     ))}
                   </select>
                 </div>
+                <div className="fare-propose" style={{ marginBottom: 12 }}>
+                  <button className="fare-propose-toggle" onClick={() => { setUseCustomFare(!useCustomFare); setProposedFare(useCustomFare ? null : selectedTier?.fare); }}>
+                    {useCustomFare ? 'Use suggested fare' : 'Propose your own fare'}
+                  </button>
+                  {useCustomFare && (
+                    <div className="row" style={{ gap: 8, marginTop: 8, alignItems: 'center' }}>
+                      <span className="muted" style={{ fontSize: 13 }}>Your offer:</span>
+                      <input className="num" type="number" min={selectedTier?.minFare || 100} step={50}
+                        value={proposedFare || ''} onChange={(e) => setProposedFare(Number(e.target.value))}
+                        style={{ flex: 1, border: '1.5px solid var(--line)', borderRadius: 8, padding: '8px 10px', background: 'var(--surface)', color: 'var(--ink)', fontSize: 16, fontWeight: 700 }}
+                        placeholder={String(selectedTier?.fare || 0)} />
+                      <span className="muted" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+                        Suggested: <span className="num">{fmtMoney(selectedTier?.fare)}</span>
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <button className="btn btn-dark btn-block" onClick={requestRide} disabled={busy}>
-                  {busy ? 'Requesting…' : `Request ${selectedTier?.name} · ${fmtMoney(selectedTier?.fare)}`}
+                  {busy ? 'Requesting…' : <span>Request {selectedTier?.name} · <span className="num">{fmtMoney(useCustomFare && proposedFare > 0 ? proposedFare : selectedTier?.fare)}</span></span>}
                 </button>
+                <button className="btn btn-light btn-block" style={{ marginTop: 8 }} onClick={() => { setPhase('set'); setDrop(null); setEstimate(null); setProposedFare(null); setUseCustomFare(false); }}>Cancel</button>
                 <div className="hint">{estimate.nearbyDrivers} drivers nearby</div>
               </div>
             )}
@@ -254,7 +302,31 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
             <div className="row" style={{ justifyContent: 'center', marginBottom: 10 }}><div className="spinner" /></div>
             <div className="s-title">Finding your driver…</div>
             <div className="s-sub">Contacting nearby {ride?.tier === 'black' ? 'Muve Black' : ride?.tier === 'muvexl' ? 'MuveXL' : 'MuveX'} drivers</div>
+            {ride?.fareStatus === 'proposed' && (
+              <div className="hint" style={{ marginTop: 8 }}>Your proposed fare: <span className="num">{fmtMoney(ride.fare)}</span> (suggested: <span className="num">{fmtMoney(ride.suggestedFare)}</span>)</div>
+            )}
             <button className="btn btn-light btn-block" style={{ marginTop: 16 }} onClick={cancelRide}>Cancel request</button>
+          </div>
+        )}
+
+        {phase === 'counter' && ride && (
+          <div className="status-banner">
+            <div className="s-title">Driver countered your fare</div>
+            <div className="s-sub">A driver proposed a different fare for your trip</div>
+            <div className="counter-compare" style={{ display: 'flex', gap: 12, margin: '16px 0' }}>
+              <div style={{ flex: 1, textAlign: 'center', padding: 12, borderRadius: 12, background: 'var(--surface-2)' }}>
+                <div className="muted" style={{ fontSize: 11 }}>Your offer</div>
+                <div className="num" style={{ fontSize: 20, fontWeight: 800 }}>{fmtMoney(ride.proposedFare || ride.suggestedFare)}</div>
+              </div>
+              <div style={{ flex: 1, textAlign: 'center', padding: 12, borderRadius: 12, background: 'var(--surface-2)' }}>
+                <div className="muted" style={{ fontSize: 11 }}>Driver's counter</div>
+                <div className="num" style={{ fontSize: 20, fontWeight: 800, color: 'var(--green)' }}>{fmtMoney(ride.fare)}</div>
+              </div>
+            </div>
+            <div className="row" style={{ gap: 10 }}>
+              <button className="btn btn-light" style={{ flex: 1 }} onClick={declineCounter}>Decline</button>
+              <button className="btn btn-green" style={{ flex: 2 }} onClick={acceptCounter}>Accept · <span className="num">{fmtMoney(ride.fare)}</span></button>
+            </div>
           </div>
         )}
 
@@ -268,14 +340,14 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
               <div className="driver-card">
                 <div className="avatar">{ride.driver.name[0]}</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 800 }}>{ride.driver.name} <span className="muted">★ {ride.driver.rating}</span></div>
+                  <div style={{ fontWeight: 800 }}>{ride.driver.name} <span className="muted num">★ {ride.driver.rating}</span></div>
                   <div className="muted">{ride.driver.vehicle?.color} {ride.driver.vehicle?.make} {ride.driver.vehicle?.model}</div>
                 </div>
                 <div className="plate">{ride.driver.vehicle?.plate}</div>
               </div>
             )}
             <div className="row spread" style={{ marginBottom: 12 }}>
-              <span className="muted">{fmtKm(ride.distanceM)} · {fmtMin(ride.durationS)} · {ride.paymentMethod}</span>
+              <span className="muted"><span className="num">{fmtKm(ride.distanceM)} · {fmtMin(ride.durationS)}</span> · {ride.paymentMethod}</span>
               <span className="big">{fmtMoney(ride.fare)}</span>
             </div>
             {['accepted', 'arrived'].includes(ride.status) && (
@@ -296,7 +368,7 @@ export default function RiderHome({ user, theme, onToggleTheme }) {
               ))}
             </div>
             <div className="tip-row">
-              {[0, 1, 2, 5].map((t) => (
+              {[0, 200, 500, 1000].map((t) => (
                 <button key={t} className={`tip-btn ${tip === t ? 'active' : ''}`} onClick={() => setTip(t)}>
                   {t === 0 ? 'No tip' : fmtMoney(t)}
                 </button>

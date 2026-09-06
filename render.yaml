@@ -13,6 +13,8 @@ services:
         generateValue: true
       - key: FRONTEND_URL
         sync: false  # Set to the frontend URL after deploying the frontend
+      - key: MAPBOX_TOKEN
+        sync: false  # Mapbox API token for Directions API
 
   # Frontend — landing page + React app
   - type: web
@@ -25,3 +27,5 @@ services:
     envVars:
       - key: VITE_API_URL
         sync: false  # Set to the backend URL after deploying the API
+      - key: VITE_MAPBOX_TOKEN
+        sync: false  # Mapbox token for map tiles + geocoding

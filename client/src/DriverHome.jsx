@@ -21,6 +21,8 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
   const [ride, setRide] = useState(null);
   const [toast, setToast] = useState('');
   const [fitKey, setFitKey] = useState(0);
+  const [counterFare, setCounterFare] = useState(null);
+  const [showCounter, setShowCounter] = useState(false);
   const posRef = useRef(null);
   posRef.current = pos;
 
@@ -110,6 +112,25 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
     if (!accept) setOffer(null);
   };
 
+  const rejectFare = () => {
+    const s = getSocket();
+    if (!offer) return;
+    s?.emit('offer:reject', { rideId: offer.id });
+    setOffer(null);
+    setShowCounter(false);
+    setCounterFare(null);
+  };
+
+  const submitCounter = async () => {
+    if (!offer || !counterFare || counterFare <= 0) return;
+    try {
+      await api(`/api/rides/${offer.id}/counter`, { method: 'POST', body: { fare: counterFare } });
+      setOffer(null);
+      setShowCounter(false);
+      setCounterFare(null);
+    } catch (e) { showToast(e.message); }
+  };
+
   const doAction = async () => {
     const [action] = NEXT_ACTION[ride.status] || [];
     if (!action) return;
@@ -168,7 +189,7 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
             </div>
             {online && <div className="spinner" />}
           </div>
-          {online && <div className="hint" style={{ textAlign: 'left', marginTop: 8 }}>Tip: tap anywhere on the map to simulate driving there.</div>}
+          {online && <div className="hint" style={{ textAlign: 'left', marginTop: 8 }}>You're online — waiting for ride requests.</div>}
         </div>
       )}
 
@@ -185,7 +206,7 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
             <div className="avatar">{ride.rider?.name?.[0] || '?'}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 800 }}>{ride.rider?.name}</div>
-              <div className="muted">{fmtKm(ride.distanceM)} · {fmtMin(ride.durationS)} · {ride.paymentMethod}</div>
+              <div className="muted"><span className="num">{fmtKm(ride.distanceM)} · {fmtMin(ride.durationS)}</span> · {ride.paymentMethod}</div>
             </div>
             <div className="big">{fmtMoney(ride.fare)}</div>
           </div>
@@ -205,22 +226,56 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
             <div className="row spread">
               <div>
                 <div style={{ fontWeight: 800, fontSize: 19 }}>New ride request</div>
-                <div className="muted">{offer.rider?.name} · ★ {offer.rider?.rating}</div>
+                <div className="muted">{offer.rider?.name} · <span className="num">★ {offer.rider?.rating}</span></div>
               </div>
-              <div className="big">{fmtMoney(offer.fare)}</div>
+              <div className="big num">{fmtMoney(offer.fare)}</div>
             </div>
+            {offer.fareStatus === 'proposed' && offer.suggestedFare && (
+              <div className="fare-negotiation" style={{ background: 'rgba(255,184,77,.12)', borderRadius: 10, padding: 10, margin: '10px 0' }}>
+                <div className="row spread" style={{ fontSize: 13 }}>
+                  <span className="muted">Rider proposed:</span>
+                  <span className="num" style={{ fontWeight: 700 }}>{fmtMoney(offer.fare)}</span>
+                </div>
+                <div className="row spread" style={{ fontSize: 13, marginTop: 4 }}>
+                  <span className="muted">Suggested fare:</span>
+                  <span className="num" style={{ fontWeight: 700, color: 'var(--green)' }}>{fmtMoney(offer.suggestedFare)}</span>
+                </div>
+                {offer.fare < offer.suggestedFare && (
+                  <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>Below suggested — you can counter or reject</div>
+                )}
+              </div>
+            )}
             <div className="countdown"><div style={{ width: `${(countdown / (offer.expiresInS || 15)) * 100}%` }} /></div>
             <div style={{ fontSize: 14, marginBottom: 6 }}>
               <div className="row" style={{ marginBottom: 6 }}><span className="dot green" /><span>{offer.pickup.addr || 'Pickup'}</span></div>
               <div className="row"><span className="dot red" /><span>{offer.drop.addr || 'Destination'}</span></div>
             </div>
-            <div className="muted" style={{ marginBottom: 14 }}>
+            <div className="muted num" style={{ marginBottom: 14 }}>
               {fmtKm(offer.pickupDistM)} to pickup · trip {fmtKm(offer.distanceM)} · {fmtMin(offer.durationS)}
             </div>
-            <div className="row">
-              <button className="btn btn-light" style={{ flex: 1 }} onClick={() => respond(false)}>Decline</button>
-              <button className="btn btn-green" style={{ flex: 2 }} onClick={() => respond(true)}>Accept · {countdown}s</button>
-            </div>
+            {showCounter ? (
+              <div>
+                <div className="row" style={{ gap: 8, marginBottom: 10, alignItems: 'center' }}>
+                  <span className="muted" style={{ fontSize: 13 }}>Your counter:</span>
+                  <input className="num" type="number" min={offer.fare} step={50}
+                    value={counterFare || ''} onChange={(e) => setCounterFare(Number(e.target.value))}
+                    placeholder={String(offer.suggestedFare || offer.fare)}
+                    style={{ flex: 1, border: '1.5px solid var(--line)', borderRadius: 8, padding: '8px 10px', background: 'var(--surface)', color: 'var(--ink)', fontSize: 16, fontWeight: 700 }} />
+                </div>
+                <div className="row" style={{ gap: 8 }}>
+                  <button className="btn btn-light" style={{ flex: 1 }} onClick={() => { setShowCounter(false); setCounterFare(null); }}>Back</button>
+                  <button className="btn btn-dark" style={{ flex: 2 }} onClick={submitCounter}>Send counter</button>
+                </div>
+              </div>
+            ) : (
+              <div className="row" style={{ gap: 6 }}>
+                <button className="btn btn-light" style={{ flex: 1 }} onClick={() => respond(false)}>Decline</button>
+                {offer.fareStatus === 'proposed' && (
+                  <button className="btn btn-light" style={{ flex: 1, borderColor: 'var(--green)', color: 'var(--green)' }} onClick={() => { setShowCounter(true); setCounterFare(offer.suggestedFare || offer.fare); }}>Counter</button>
+                )}
+                <button className="btn btn-green" style={{ flex: offer.fareStatus === 'proposed' ? 1.5 : 2 }} onClick={() => respond(true)}>Accept · {countdown}s</button>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -2,7 +2,7 @@
 import db from './db.js';
 import { verifyToken } from './auth.js';
 import { drivers, userSockets, emitToUser } from './state.js';
-import { acceptOffer, declineOffer } from './matching.js';
+import { acceptOffer, declineOffer, counterOffer } from './matching.js';
 import { getRide } from './ridecore.js';
 
 const ACTIVE = ['accepted', 'arrived', 'in_progress'];
@@ -64,6 +64,15 @@ export function registerSockets(io) {
         if (!ok) socket.emit('ride:offer:closed', { rideId, reason: 'expired' });
       });
       socket.on('offer:decline', ({ rideId } = {}) => declineOffer(user.id, rideId));
+      socket.on('offer:reject', ({ rideId } = {}) => {
+        // Driver explicitly rejects a proposed-fare ride (different from decline — notifies rider)
+        declineOffer(user.id, rideId);
+        const ride = getRide(rideId);
+        if (ride) emitToUser(ride.rider_id, 'ride:fare:rejected', { rideId });
+      });
+      socket.on('offer:counter', ({ rideId, fare } = {}) => {
+        counterOffer(user.id, rideId, fare);
+      });
     }
 
     socket.on('disconnect', () => {

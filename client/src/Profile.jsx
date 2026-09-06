@@ -80,8 +80,8 @@ export default function Profile({ user, onLogout }) {
             <div style={{ fontWeight: 800, fontSize: 18 }}>{user.name}</div>
             <div className="muted">{user.email}</div>
             <div className="muted">
-              {user.role === 'driver' ? 'Driver' : 'Rider'} · ★ {user.rating || '5.0'}
-              {user.role === 'driver' && user.vehicle && ` · ${user.vehicle.make} ${user.vehicle.model} (${user.vehicle.plate})`}
+              {user.role === 'driver' ? 'Driver' : 'Rider'} · <span className="num">★ {user.rating || '5.0'}</span>
+              {user.role === 'driver' && user.vehicle && ` · ${user.vehicle.make} ${user.vehicle.model} (`}<span className="num">{user.vehicle?.plate}</span>{user.role === 'driver' && user.vehicle && `)`}
             </div>
           </div>
         </div>
@@ -116,10 +116,10 @@ export default function Profile({ user, onLogout }) {
                 <div className="kyc-row"><span className="muted">Phone</span><span>{kyc.phone}</span></div>
                 <div className="kyc-row"><span className="muted">Date of birth</span><span>{kyc.dob}</span></div>
                 <div className="kyc-row"><span className="muted">ID type</span><span>{ID_TYPES.find((t) => t.value === kyc.id_type)?.label || kyc.id_type}</span></div>
-                <div className="kyc-row"><span className="muted">ID number</span><span>••••••{kyc.id_number?.slice(-4)}</span></div>
+                <div className="kyc-row"><span className="muted">ID number</span><span className="num">••••••{kyc.id_number?.slice(-4)}</span></div>
                 <div className="kyc-row"><span className="muted">Address</span><span>{kyc.address}, {kyc.city}, {kyc.state}</span></div>
                 {user.role === 'driver' && kyc.license_number && (
-                  <div className="kyc-row"><span className="muted">License no.</span><span>••••••{kyc.license_number?.slice(-4)}</span></div>
+                  <div className="kyc-row"><span className="muted">License no.</span><span className="num">••••••{kyc.license_number?.slice(-4)}</span></div>
                 )}
                 {user.role === 'driver' && kyc.vehicle_reg && (
                   <div className="kyc-row"><span className="muted">Vehicle reg.</span><span>{kyc.vehicle_reg}</span></div>
@@ -140,12 +140,12 @@ export default function Profile({ user, onLogout }) {
               <div className="vehicle-grid">
                 <div className="field">
                   <label>Phone number</label>
-                  <input value={kycForm.phone} required placeholder="0801 234 5678" maxLength={14}
+                  <input className="num" value={kycForm.phone} required placeholder="0801 234 5678" maxLength={14}
                     onChange={(e) => setKycForm({ ...kycForm, phone: e.target.value })} />
                 </div>
                 <div className="field">
                   <label>Date of birth</label>
-                  <input type="date" value={kycForm.dob} required
+                  <input className="num" type="date" value={kycForm.dob} required
                     onChange={(e) => setKycForm({ ...kycForm, dob: e.target.value })} />
                 </div>
               </div>
@@ -158,7 +158,7 @@ export default function Profile({ user, onLogout }) {
                 </div>
                 <div className="field">
                   <label>ID number</label>
-                  <input value={kycForm.id_number} required placeholder="e.g. 12345678901"
+                  <input className="num" value={kycForm.id_number} required placeholder="e.g. 12345678901"
                     onChange={(e) => setKycForm({ ...kycForm, id_number: e.target.value })} />
                 </div>
               </div>
@@ -184,12 +184,12 @@ export default function Profile({ user, onLogout }) {
                 <div className="vehicle-grid">
                   <div className="field">
                     <label>Driver's license no.</label>
-                    <input value={kycForm.license_number} required placeholder="e.g. ABC123456"
+                    <input className="num" value={kycForm.license_number} required placeholder="e.g. ABC123456"
                       onChange={(e) => setKycForm({ ...kycForm, license_number: e.target.value })} />
                   </div>
                   <div className="field">
                     <label>Vehicle registration</label>
-                    <input value={kycForm.vehicle_reg} required placeholder="e.g. LAG123AB"
+                    <input className="num" value={kycForm.vehicle_reg} required placeholder="e.g. LAG123AB"
                       onChange={(e) => setKycForm({ ...kycForm, vehicle_reg: e.target.value })} />
                   </div>
                 </div>
@@ -213,7 +213,7 @@ export default function Profile({ user, onLogout }) {
           <div className="row spread" key={m.id} style={{ padding: '9px 0', borderBottom: '1px solid var(--line)' }}>
             <span className="row" style={{ gap: 10 }}>
               <Icon name={m.brand === 'Cash' ? 'cash' : 'card'} size={20} />
-              {m.label || `${m.brand} •••• ${m.last4}`}
+              {m.label || <span className="num">{`${m.brand} •••• ${m.last4}`}</span>}
             </span>
             {m.brand !== 'Cash' && (
               <button className="btn-ghost row" style={{ gap: 4 }} onClick={async () => { await api(`/api/payments/${m.id}`, { method: 'DELETE' }); loadPayments(); }}>
@@ -233,7 +233,7 @@ export default function Profile({ user, onLogout }) {
               </div>
               <div className="field">
                 <label>Last 4 digits</label>
-                <input value={card.last4} maxLength={4} pattern="\d{4}" required placeholder="4242"
+                <input className="num" value={card.last4} maxLength={4} pattern="\d{4}" required placeholder="4242"
                   onChange={(e) => setCard({ ...card, last4: e.target.value.replace(/\D/g, '') })} />
               </div>
             </div>
@@ -242,10 +242,10 @@ export default function Profile({ user, onLogout }) {
         )}
       </div>
 
-      <button className="btn btn-light btn-block btn-red" style={{ background: '#fdecec', color: 'var(--red)', border: 'none' }} onClick={onLogout}>
+      {/* <button className="btn btn-light btn-block btn-red" style={{ background: 'rgba(214,50,62,.12)', color: 'var(--red)', border: 'none' }} onClick={onLogout}>
         Log out
-      </button>
-      <p className="hint" style={{ marginTop: 16 }}>muve v1.0 — Built for Nigeria</p>
+      </button> */}
+      <p className="hint" style={{ marginTop: 16 }}>muve <span className="num">v1.0</span> — Built for Nigeria</p>
     </div>
   );
 }

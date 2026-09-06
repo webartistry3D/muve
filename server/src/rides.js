@@ -3,9 +3,9 @@ import db from './db.js';
 import { authRequired } from './auth.js';
 import { TIERS, estimateAll, computeSurge, haversineM } from './fares.js';
 import { getRoute } from './routing.js';
-import { drivers, onlineIdleDrivers, simRides } from './state.js';
+import { drivers, onlineIdleDrivers, simRides, pendingOffers, emitToUser } from './state.js';
 import { getRide, rideToJson, updateRide, broadcastRide } from './ridecore.js';
-import { startMatching, cancelMatching } from './matching.js';
+import { startMatching, cancelMatching, acceptOffer, counterOffer } from './matching.js';
 
 const ACTIVE_STATUSES = ['requested', 'matching', 'accepted', 'arrived', 'in_progress'];
 
@@ -40,7 +40,7 @@ export function registerRideRoutes(app) {
   // Request a ride
   app.post('/api/rides', authRequired, async (req, res) => {
     if (req.user.role !== 'rider') return res.status(403).json({ error: 'Only riders can request rides' });
-    const { pickup, drop, tier, paymentMethod } = req.body || {};
+    const { pickup, drop, tier, paymentMethod, proposedFare } = req.body || {};
     if (!pickup?.lat || !drop?.lat || !TIERS[tier]) return res.status(400).json({ error: 'pickup, drop and valid tier required' });
 
     const existing = db.prepare(
@@ -50,19 +50,78 @@ export function registerRideRoutes(app) {
 
     const route = await getRoute(pickup.lat, pickup.lng, drop.lat, drop.lng);
     const surge = currentSurge();
-    const fare = estimateAll(route.distanceM, route.durationS, surge).find((t) => t.key === tier).fare;
+    const suggestedFare = estimateAll(route.distanceM, route.durationS, surge).find((t) => t.key === tier).fare;
+
+    // If rider proposed a fare, use it as the proposed fare; fare_status starts as 'proposed'
+    // If no proposal, fare = suggested fare and status is 'agreed' (standard flow)
+    const hasProposal = proposedFare != null && Number(proposedFare) > 0;
+    const fare = hasProposal ? Number(proposedFare) : suggestedFare;
+    const fareStatus = hasProposal ? 'proposed' : 'agreed';
 
     const info = db.prepare(`
       INSERT INTO rides (rider_id, status, tier, pickup_lat, pickup_lng, pickup_addr,
-        drop_lat, drop_lng, drop_addr, distance_m, duration_s, fare, surge, payment_method, route_json)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        drop_lat, drop_lng, drop_addr, distance_m, duration_s, fare, suggested_fare, proposed_fare, fare_status, surge, payment_method, route_json)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(req.user.id, 'requested', tier, pickup.lat, pickup.lng, pickup.addr || null,
       drop.lat, drop.lng, drop.addr || null, Math.round(route.distanceM), Math.round(route.durationS),
-      fare, surge, paymentMethod || 'Cash', JSON.stringify(route.points));
+      fare, suggestedFare, hasProposal ? fare : null, fareStatus, surge, paymentMethod || 'Cash', JSON.stringify(route.points));
 
     const ride = getRide(info.lastInsertRowid);
     res.json({ ride: rideToJson(ride) });
     startMatching(ride.id);
+  });
+
+  // Driver counters a proposed fare
+  app.post('/api/rides/:id/counter', authRequired, (req, res) => {
+    const ride = getRide(req.params.id);
+    if (!ride) return res.status(404).json({ error: 'Ride not found' });
+    // During matching, driver_id isn't set yet — check pending offer
+    const offer = pendingOffers.get(ride.id);
+    const isOfferedDriver = offer && offer.driverId === req.user.id;
+    const isAssignedDriver = ride.driver_id === req.user.id;
+    if (!isOfferedDriver && !isAssignedDriver) return res.status(403).json({ error: 'Not your ride' });
+    if (ride.fare_status !== 'proposed') return res.status(400).json({ error: 'Ride fare is not in negotiation' });
+    const counterFare = Number(req.body?.fare);
+    if (!counterFare || counterFare <= 0) return res.status(400).json({ error: 'Valid counter fare required' });
+    counterOffer(req.user.id, ride.id, counterFare); // clear offer timer, keep driver as offered
+    const updated = updateRide(ride.id, { fare: counterFare, fare_status: 'countered' });
+    broadcastRide(updated, { counterFare });
+    res.json({ ride: rideToJson(updated) });
+  });
+
+  // Rider accepts a counter-offer
+  app.post('/api/rides/:id/accept-counter', authRequired, (req, res) => {
+    const ride = getRide(req.params.id);
+    if (!ride) return res.status(404).json({ error: 'Ride not found' });
+    if (ride.rider_id !== req.user.id) return res.status(403).json({ error: 'Not your ride' });
+    if (ride.fare_status !== 'countered') return res.status(400).json({ error: 'No counter to accept' });
+    const updated = updateRide(ride.id, { fare_status: 'agreed' });
+    // Auto-accept by the driver who countered
+    const offer = pendingOffers.get(ride.id);
+    if (offer && offer.driverId) {
+      acceptOffer(offer.driverId, ride.id);
+    } else {
+      broadcastRide(updated);
+    }
+    res.json({ ride: rideToJson(updated) });
+  });
+
+  // Rider declines a counter-offer (cancels the ride)
+  app.post('/api/rides/:id/decline-counter', authRequired, (req, res) => {
+    const ride = getRide(req.params.id);
+    if (!ride) return res.status(404).json({ error: 'Ride not found' });
+    if (ride.rider_id !== req.user.id) return res.status(403).json({ error: 'Not your ride' });
+    if (ride.fare_status !== 'countered') return res.status(400).json({ error: 'No counter to decline' });
+    cancelMatching(ride.id);
+    const offer = pendingOffers.get(ride.id);
+    if (offer && offer.driverId) {
+      const d = drivers.get(offer.driverId);
+      if (d && d.status === 'offered') d.status = 'idle';
+      emitToUser(offer.driverId, 'ride:offer:closed', { rideId: ride.id, reason: 'counter_declined' });
+    }
+    const updated = updateRide(ride.id, { status: 'cancelled', cancelled_by: 'rider', fare_status: 'rejected' });
+    broadcastRide(updated);
+    res.json({ ride: rideToJson(updated) });
   });
 
   // Current active ride (rider or driver)
@@ -157,11 +216,73 @@ export function registerRideRoutes(app) {
     });
   });
 
+  // Driver expenses
+  const EXPENSE_CATEGORIES = ['Fuel', 'Repairs', 'Maintenance', 'Insurance', 'Other'];
+
+  app.get('/api/driver/expenses', authRequired, (req, res) => {
+    if (req.user.role !== 'driver') return res.status(403).json({ error: 'Drivers only' });
+    const expenses = db.prepare('SELECT * FROM expenses WHERE driver_id = ? ORDER BY id DESC LIMIT 50').all(req.user.id);
+    const sum = (rows) => Math.round(rows.reduce((s, e) => s + e.amount, 0) * 100) / 100;
+    const today = new Date().toISOString().slice(0, 10);
+    const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
+    res.json({
+      today: sum(expenses.filter((e) => (e.created_at || '').slice(0, 10) === today)),
+      week: sum(expenses.filter((e) => (e.created_at || '') >= weekAgo)),
+      total: sum(expenses),
+      expenses: expenses.map((e) => ({
+        id: e.id, category: e.category, amount: e.amount, note: e.note, createdAt: e.created_at,
+      })),
+      categories: EXPENSE_CATEGORIES,
+    });
+  });
+
+  app.post('/api/driver/expenses', authRequired, (req, res) => {
+    if (req.user.role !== 'driver') return res.status(403).json({ error: 'Drivers only' });
+    const { category, amount, note } = req.body || {};
+    if (!category || !EXPENSE_CATEGORIES.includes(category)) return res.status(400).json({ error: 'Valid category required' });
+    if (!amount || Number(amount) <= 0) return res.status(400).json({ error: 'Valid amount required' });
+    db.prepare('INSERT INTO expenses (driver_id, category, amount, note) VALUES (?,?,?,?)')
+      .run(req.user.id, category, Number(amount), note || null);
+    const expenses = db.prepare('SELECT * FROM expenses WHERE driver_id = ? ORDER BY id DESC LIMIT 50').all(req.user.id);
+    const sum = (rows) => Math.round(rows.reduce((s, e) => s + e.amount, 0) * 100) / 100;
+    const today = new Date().toISOString().slice(0, 10);
+    const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
+    res.json({
+      today: sum(expenses.filter((e) => (e.created_at || '').slice(0, 10) === today)),
+      week: sum(expenses.filter((e) => (e.created_at || '') >= weekAgo)),
+      total: sum(expenses),
+      expenses: expenses.map((e) => ({
+        id: e.id, category: e.category, amount: e.amount, note: e.note, createdAt: e.created_at,
+      })),
+      categories: EXPENSE_CATEGORIES,
+    });
+  });
+
+  app.delete('/api/driver/expenses/:id', authRequired, (req, res) => {
+    if (req.user.role !== 'driver') return res.status(403).json({ error: 'Drivers only' });
+    db.prepare('DELETE FROM expenses WHERE id = ? AND driver_id = ?').run(req.params.id, req.user.id);
+    const expenses = db.prepare('SELECT * FROM expenses WHERE driver_id = ? ORDER BY id DESC LIMIT 50').all(req.user.id);
+    const sum = (rows) => Math.round(rows.reduce((s, e) => s + e.amount, 0) * 100) / 100;
+    const today = new Date().toISOString().slice(0, 10);
+    const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
+    res.json({
+      today: sum(expenses.filter((e) => (e.created_at || '').slice(0, 10) === today)),
+      week: sum(expenses.filter((e) => (e.created_at || '') >= weekAgo)),
+      total: sum(expenses),
+      expenses: expenses.map((e) => ({
+        id: e.id, category: e.category, amount: e.amount, note: e.note, createdAt: e.created_at,
+      })),
+      categories: EXPENSE_CATEGORIES,
+    });
+  });
+
   // Nearby cars preview for the rider map
   app.get('/api/drivers/nearby', authRequired, (req, res) => {
     const lat = Number(req.query.lat), lng = Number(req.query.lng);
     if (!lat || !lng) return res.json({ drivers: [] });
+    const simMode = process.env.SIM_MODE !== 'false';
     const near = onlineIdleDrivers()
+      .filter((d) => simMode || !d.isSim) // hide sim drivers when sim mode is off
       .map((d) => ({ id: d.id, lat: d.lat, lng: d.lng, heading: d.heading || 0, dist: haversineM(lat, lng, d.lat, d.lng) }))
       .filter((d) => d.dist < 8000)
       .sort((a, b) => a.dist - b.dist)

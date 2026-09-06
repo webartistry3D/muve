@@ -29,17 +29,17 @@ export default function History() {
             </div>
             <div className="muted">
               {fmtDate(r.completedAt || r.requestedAt)}
-              {' · '}{fmtKm(r.distanceM)}
+              {' · '}<span className="num">{fmtKm(r.distanceM)}</span>
               {r.driver && <> · {r.driver.name}</>}
             </div>
             <div style={{ marginTop: 4 }}>
               <span className={`badge ${r.status === 'completed' ? 'done' : 'cancel'}`}>
                 {r.status === 'completed' ? 'Completed' : `Cancelled${r.cancelledBy ? ` by ${r.cancelledBy}` : ''}`}
               </span>
-              {r.rating && <span className="muted" style={{ marginLeft: 8 }}>★ {r.rating}</span>}
+              {r.rating && <span className="muted num" style={{ marginLeft: 8 }}>★ {r.rating}</span>}
             </div>
           </div>
-          <div style={{ fontWeight: 800 }}>{fmtMoney(r.fare + (r.tip || 0))}</div>
+          <div style={{ fontWeight: 800 }} className="num">{fmtMoney(r.fare + (r.tip || 0))}</div>
         </div>
       ))}
     </div>

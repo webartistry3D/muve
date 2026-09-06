@@ -75,4 +75,20 @@ const cols = db.prepare("PRAGMA table_info(kyc)").all().map((c) => c.name);
 if (!cols.includes('license_number')) db.exec('ALTER TABLE kyc ADD COLUMN license_number TEXT');
 if (!cols.includes('vehicle_reg')) db.exec('ALTER TABLE kyc ADD COLUMN vehicle_reg TEXT');
 
+const rideCols = db.prepare("PRAGMA table_info(rides)").all().map((c) => c.name);
+if (!rideCols.includes('proposed_fare')) db.exec('ALTER TABLE rides ADD COLUMN proposed_fare REAL');
+if (!rideCols.includes('suggested_fare')) db.exec('ALTER TABLE rides ADD COLUMN suggested_fare REAL');
+if (!rideCols.includes('fare_status')) db.exec("ALTER TABLE rides ADD COLUMN fare_status TEXT DEFAULT 'agreed'");
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS expenses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  driver_id INTEGER NOT NULL REFERENCES users(id),
+  category TEXT NOT NULL,
+  amount REAL NOT NULL,
+  note TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+`);
+
 export default db;

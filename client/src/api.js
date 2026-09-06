@@ -28,18 +28,39 @@ export async function api(path, { method = 'GET', body } = {}) {
   return data;
 }
 
-// Geocoding via OpenStreetMap Nominatim (free, no key)
+// Geocoding via Mapbox (with Nominatim fallback)
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
+
 export async function geocode(q, near) {
-  const params = new URLSearchParams({ format: 'json', q, limit: '5' });
-  if (near) params.set('viewbox', `${near.lng - 0.3},${near.lat + 0.3},${near.lng + 0.3},${near.lat - 0.3}`);
-  const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.map((r) => ({ lat: +r.lat, lng: +r.lon, addr: r.display_name }));
+  try {
+    if (MAPBOX_TOKEN) {
+      const proximity = near ? `&proximity=${near.lng},${near.lat}` : '';
+      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${MAPBOX_TOKEN}&limit=5&country=ng${proximity}`);
+      if (res.ok) {
+        const data = await res.json();
+        return data.features.map((f) => ({ lat: f.center[1], lng: f.center[0], addr: f.place_name }));
+      }
+    }
+    // Fallback to Nominatim
+    const params = new URLSearchParams({ format: 'json', q, limit: '5' });
+    if (near) params.set('viewbox', `${near.lng - 0.3},${near.lat + 0.3},${near.lng + 0.3},${near.lat - 0.3}`);
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.map((r) => ({ lat: +r.lat, lng: +r.lon, addr: r.display_name }));
+  } catch { return []; }
 }
 
 export async function reverseGeocode(lat, lng) {
   try {
+    if (MAPBOX_TOKEN) {
+      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&types=address,poi,place`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.features?.[0]) return data.features[0].place_name;
+      }
+    }
+    // Fallback to Nominatim
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
     const data = await res.json();
     return data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;

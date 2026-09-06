@@ -6,16 +6,18 @@ import { haversineM } from './fares.js';
 import { getRide, updateRide, broadcastRide, rideToJson } from './ridecore.js';
 import { ensureSimFleet, startSimTrip } from './sim.js';
 
-const OFFER_TIMEOUT_MS = 15000;
+const OFFER_TIMEOUT_MS = 30000;
 
 export function startMatching(rideId) {
   const ride = getRide(rideId);
   if (!ride) return;
-  ensureSimFleet(ride.pickup_lat, ride.pickup_lng, ride.tier);
+  const simMode = process.env.SIM_MODE !== 'false';
+  if (simMode) ensureSimFleet(ride.pickup_lat, ride.pickup_lng, ride.tier);
 
   const candidates = [...drivers.entries()]
     .filter(([id, d]) => {
       if (d.status !== 'idle') return false;
+      if (!simMode && d.isSim) return false; // skip sim drivers when sim mode is off
       const u = db.prepare('SELECT vehicle_tier FROM users WHERE id = ?').get(id);
       return u?.vehicle_tier === ride.tier;
     })
@@ -39,10 +41,11 @@ function offerNext(rideId) {
   });
 
   if (nextId === undefined) {
-    // Nobody left — spawn fresh sim capacity and retry once
-    ensureSimFleet(ride.pickup_lat, ride.pickup_lng, ride.tier, 5);
+    // Nobody left — spawn fresh sim capacity and retry once (only in sim mode)
+    if (process.env.SIM_MODE !== 'false') ensureSimFleet(ride.pickup_lat, ride.pickup_lng, ride.tier, 5);
     const retry = [...drivers.entries()]
       .filter(([id, d]) => d.status === 'idle' && !offer.declined.has(id) &&
+        !(process.env.SIM_MODE === 'false' && d.isSim) &&
         db.prepare('SELECT vehicle_tier FROM users WHERE id = ?').get(id)?.vehicle_tier === ride.tier)
       .map(([id]) => id);
     if (!retry.length) {
@@ -59,7 +62,16 @@ function offerNext(rideId) {
   offer.driverId = nextId;
 
   if (d.isSim) {
-    offer.timer = setTimeout(() => acceptOffer(nextId, rideId), 1500 + Math.random() * 2500);
+    // Sim drivers: if rider proposed a fare below suggested, sometimes counter
+    if (ride.fare_status === 'proposed' && ride.suggested_fare && ride.fare < ride.suggested_fare * 0.85) {
+      offer.timer = setTimeout(() => {
+        const counterFare = Math.round(ride.suggested_fare * 0.9);
+        updateRide(rideId, { fare: counterFare, fare_status: 'countered' });
+        broadcastRide(getRide(rideId), { counterFare });
+      }, 1500 + Math.random() * 2000);
+    } else {
+      offer.timer = setTimeout(() => acceptOffer(nextId, rideId), 1500 + Math.random() * 2500);
+    }
   } else {
     emitToUser(nextId, 'ride:offer', rideToJson(ride, {
       pickupDistM: Math.round(haversineM(ride.pickup_lat, ride.pickup_lng, d.lat, d.lng)),
@@ -90,12 +102,25 @@ export function declineOffer(driverId, rideId, isTimeout = false) {
   const offer = pendingOffers.get(rideId);
   if (!offer || offer.driverId !== driverId) return false;
   clearTimeout(offer.timer);
+  // If ride is in 'countered' state, don't wipe the offer — rider hasn't responded yet
+  const ride = getRide(rideId);
+  if (ride && ride.fare_status === 'countered') return true;
   offer.declined.add(driverId);
   offer.driverId = null;
   const d = drivers.get(driverId);
   if (d && d.status === 'offered') d.status = 'idle';
   if (!isTimeout) emitToUser(driverId, 'ride:offer:closed', { rideId });
   offerNext(rideId);
+  return true;
+}
+
+// Driver counters the fare — pause matching, wait for rider response
+export function counterOffer(driverId, rideId, counterFare) {
+  const offer = pendingOffers.get(rideId);
+  if (!offer || offer.driverId !== driverId) return false;
+  clearTimeout(offer.timer);
+  // Keep the driver as offered but don't time out — rider needs to respond
+  // The ride stays in 'matching' status with fare_status='countered'
   return true;
 }
 

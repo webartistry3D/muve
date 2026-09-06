@@ -4,3 +4,8 @@ server/muve.db
 server/muve.db-shm
 server/muve.db-wal
 *.log
+
+# Environment variables
+client/.env
+.env
+server/.env

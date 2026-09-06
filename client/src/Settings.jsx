@@ -66,7 +66,7 @@ export default function Settings({ user, onLogout }) {
       {/* Driver-specific settings */}
       {isDriver && (
         <SectionCard title="Driver preferences">
-          <SettingRow iconName="zap" label="Auto-accept rides" sub="Automatically accept ride offers within 1km">
+          <SettingRow iconName="zap" label="Auto-accept rides" sub={<>Automatically accept ride offers within <span className="num">1km</span></>}>
             <Toggle on={autoAccept} onClick={() => setAutoAccept(!autoAccept)} />
           </SettingRow>
         </SectionCard>
@@ -94,10 +94,10 @@ export default function Settings({ user, onLogout }) {
       </SectionCard>
 
       {/* Logout */}
-      <button className="btn btn-light btn-block btn-red" style={{ background: '#fdecec', color: 'var(--red)', border: 'none' }} onClick={onLogout}>
+      <button className="btn btn-light btn-block btn-red" style={{ background: 'rgba(214,50,62,.12)', color: 'var(--red)', border: 'none' }} onClick={onLogout}>
         Log out
       </button>
-      <p className="hint" style={{ marginTop: 16, textAlign: 'center' }}>muve v1.0 — Built for Nigeria</p>
+      <p className="hint" style={{ marginTop: 16, textAlign: 'center' }}>muve <span className="num">v1.0</span> — Built for Nigeria</p>
     </div>
   );
 }
