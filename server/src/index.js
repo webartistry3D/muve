@@ -1,5 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
+
+process.on('uncaughtException', (err) => console.error('FATAL:', err));
+process.on('unhandledRejection', (err) => console.error('REJECTION:', err));
 import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
