@@ -1,6 +1,7 @@
 // Mapbox GL vector map wrapper. Markers: {id, lat, lng, kind: 'pickup'|'drop'|'car'|'me', heading?}
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
+import Icon from './Icons.jsx';
 
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 mapboxgl.accessToken = TOKEN;
@@ -8,6 +9,7 @@ mapboxgl.accessToken = TOKEN;
 const STYLES = {
   light: 'mapbox://styles/mapbox/streets-v12',
   dark: 'mapbox://styles/mapbox/dark-v11',
+  satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
 };
 
 // Custom HTML markers for each kind
@@ -37,6 +39,7 @@ export default function MapView({ center, markers = [], route = null, fitKey = n
   const markerRef = useRef(new Map());
   const clickRef = useRef(onMapClick);
   clickRef.current = onMapClick;
+  const [satellite, setSatellite] = useState(false);
 
   // Init map
   useEffect(() => {
@@ -57,16 +60,17 @@ export default function MapView({ center, markers = [], route = null, fitKey = n
     return () => { map.remove(); mapRef.current = null; };
   }, []);
 
-  // Swap style when theme changes
+  // Swap style when theme or satellite changes
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    map.setStyle(STYLES[theme] || STYLES.light);
+    const styleKey = satellite ? 'satellite' : theme;
+    map.setStyle(STYLES[styleKey] || STYLES.light);
     // Re-add route layer after style loads
     map.once('style.load', () => {
       if (route && route.length > 1) addRouteLayer(map, route, theme);
     });
-  }, [theme]);
+  }, [theme, satellite]);
 
   // Recenter when center prop changes
   useEffect(() => {
@@ -124,7 +128,14 @@ export default function MapView({ center, markers = [], route = null, fitKey = n
     }
   }, [fitKey]);
 
-  return <div ref={elRef} className="map-full" />;
+  return (
+    <div className="map-wrap">
+      <div ref={elRef} className="map-full" />
+      <button className="sat-toggle" onClick={() => setSatellite(!satellite)} title={satellite ? 'Street view' : 'Satellite view'}>
+        <Icon name={satellite ? 'globe' : 'pin'} size={20} />
+      </button>
+    </div>
+  );
 }
 
 function addRouteLayer(map, route, theme) {

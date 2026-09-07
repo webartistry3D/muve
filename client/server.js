@@ -26,13 +26,18 @@ app.get(/^\/app(.*)$/, (req, res, next) => {
   res.sendFile(path.join(dist, 'app.html'));
 });
 
-// For any other unmatched route, serve the landing page
+// Landing page at /
+app.get('/', (req, res) => {
+  res.sendFile(path.join(dist, 'landing.html'));
+});
+
+// For any other unmatched route, try to serve the exact file (about.html, contact.html, etc.)
+// then fall back to the landing page
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) return next();
-  // Try to serve the exact file first (about.html, contact.html, etc.)
   const file = path.join(dist, req.path);
   res.sendFile(file, (err) => {
-    if (err) res.sendFile(path.join(dist, 'index.html'));
+    if (err) res.sendFile(path.join(dist, 'landing.html'));
   });
 });
 

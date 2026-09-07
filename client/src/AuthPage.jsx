@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api, setSession } from './api.js';
 import { Icon } from './Icons.jsx';
+
+const ease = [0.16, 1, 0.3, 1];
 
 export default function AuthPage({ onAuth }) {
   const [mode, setMode] = useState('login');
@@ -37,21 +40,50 @@ export default function AuthPage({ onAuth }) {
 
   return (
     <div className="auth-wrap">
-      <div className="auth-logo">muve</div>
-      <div className="auth-tag">Get there. Your day belongs to you.</div>
-      <form className="auth-card" onSubmit={submit}>
+      <motion.div
+        className="auth-logo"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease }}
+      >
+        muve
+      </motion.div>
+      <motion.div
+        className="auth-tag"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1, ease }}
+      >
+        Get there. Your day belongs to you.
+      </motion.div>
+      <motion.form
+        className="auth-card"
+        onSubmit={submit}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.2, ease }}
+      >
         <h2>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h2>
         {err && <div className="err">{err}</div>}
 
-        {mode === 'register' && (
-          <>
-            <div className="role-row">
-              <button type="button" className={`role-btn ${role === 'rider' ? 'active' : ''}`} onClick={() => setRole('rider')}>🧍 Rider</button>
-              <button type="button" className={`role-btn ${role === 'driver' ? 'active' : ''}`} onClick={() => setRole('driver')}>🚕 Driver</button>
-            </div>
-            <div className="field"><label>Full name</label><input value={form.name} onChange={set('name')} required placeholder="Alex Rider" /></div>
-          </>
-        )}
+        <AnimatePresence mode="wait">
+          {mode === 'register' && (
+            <motion.div
+              key="register-fields"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4, ease }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div className="role-row">
+                <button type="button" className={`role-btn ${role === 'rider' ? 'active' : ''}`} onClick={() => setRole('rider')}><Icon name="user" size={18} /> <span>Passenger</span></button>
+                <button type="button" className={`role-btn ${role === 'driver' ? 'active' : ''}`} onClick={() => setRole('driver')}><Icon name="car" size={18} /> <span>Driver</span></button>
+              </div>
+              <div className="field"><label>Full name</label><input value={form.name} onChange={set('name')} required placeholder="Alex Rider" /></div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="field"><label>Email</label><input type="email" value={form.email} onChange={set('email')} required placeholder="you@example.com" /></div>
         <div className="field" style={{ position: 'relative' }}>
@@ -62,35 +94,49 @@ export default function AuthPage({ onAuth }) {
           </button>
         </div>
 
-        {mode === 'register' && role === 'driver' && (
-          <>
-            <div className="vehicle-grid">
-              <div className="field"><label>Car make</label><input value={form.make} onChange={set('make')} required placeholder="Toyota" /></div>
-              <div className="field"><label>Model</label><input value={form.model} onChange={set('model')} required placeholder="Prius" /></div>
-              <div className="field"><label>Plate</label><input value={form.plate} onChange={set('plate')} required placeholder="ZB 4821" /></div>
-              <div className="field"><label>Color</label><input value={form.color} onChange={set('color')} required placeholder="Black" /></div>
-            </div>
-            <div className="field">
-              <label>Service tier</label>
-              <select value={form.tier} onChange={set('tier')}>
-                <option value="muvex">MuveX</option>
-                <option value="muvexl">MuveXL</option>
-                <option value="black">Muve Black</option>
-              </select>
-            </div>
-          </>
-        )}
+        <AnimatePresence mode="wait">
+          {mode === 'register' && role === 'driver' && (
+            <motion.div
+              key="driver-fields"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4, ease }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div className="vehicle-grid">
+                <div className="field"><label>Car make</label><input value={form.make} onChange={set('make')} required placeholder="Toyota" /></div>
+                <div className="field"><label>Model</label><input value={form.model} onChange={set('model')} required placeholder="Prius" /></div>
+                <div className="field"><label>Plate</label><input value={form.plate} onChange={set('plate')} required placeholder="ZB 4821" /></div>
+                <div className="field"><label>Color</label><input value={form.color} onChange={set('color')} required placeholder="Black" /></div>
+              </div>
+              <div className="field">
+                <label>Service tier</label>
+                <select value={form.tier} onChange={set('tier')}>
+                  <option value="muvex">MuveX</option>
+                  <option value="muvexl">MuveXL</option>
+                  <option value="black">Muve Black</option>
+                </select>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <button className="btn btn-dark btn-block" disabled={busy}>
+        <motion.button
+          className="btn btn-dark btn-block"
+          disabled={busy}
+          whileTap={{ scale: 0.98 }}
+          animate={{ opacity: busy ? 0.7 : 1 }}
+        >
           {busy ? 'One moment…' : mode === 'login' ? 'Log in' : 'Sign up'}
-        </button>
+        </motion.button>
         <p style={{ marginTop: 14, fontSize: 14, textAlign: 'center' }}>
           {mode === 'login' ? "New to muve? " : 'Already have an account? '}
           <button type="button" className="link-btn" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErr(''); }}>
             {mode === 'login' ? 'Sign up' : 'Log in'}
           </button>
         </p>
-      </form>
+      </motion.form>
     </div>
   );
 }

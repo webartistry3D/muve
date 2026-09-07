@@ -356,7 +356,7 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
             <div className={`loc-input ${activeField === 'pickup' ? 'active' : ''}`} onClick={() => { setActiveField('pickup'); setQuery(pickup?.addr || ''); }}>
               <span className="dot green" />
               <input
-                placeholder="Where from?"
+                placeholder="Pick up"
                 value={activeField === 'pickup' ? query : (pickup?.addr || '')}
                 onChange={(e) => { setActiveField('pickup'); setQuery(e.target.value); if (!e.target.value) { setPickup(null); setDrop(null); setEstimate(null); setPhase('set'); } }}
                 onFocus={() => { setActiveField('pickup'); setQuery(pickup?.addr || ''); }}
@@ -365,7 +365,7 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
             <div className={`loc-input ${activeField === 'drop' ? 'active' : ''}`} onClick={() => { setActiveField('drop'); setQuery(drop?.addr || ''); }}>
               <span className="dot red" />
               <input
-                placeholder="Where to?"
+                placeholder="Destination"
                 value={activeField === 'drop' ? query : (drop?.addr || '')}
                 onChange={(e) => { setActiveField('drop'); setQuery(e.target.value); if (!e.target.value) { setDrop(null); setEstimate(null); setPhase('set'); } }}
                 onFocus={() => { setActiveField('drop'); setQuery(drop?.addr || ''); }}

@@ -6,17 +6,14 @@ export default defineConfig(({ command }) => ({
   plugins: [
     react(),
     // In dev, rewrite /app and /app/* to /app.html so Vite serves the React entry
-    // Also serve public/index.html (landing page) at / since the Vite entry is app.html
+    // Serve landing.html at / since the Vite entry is landing.html
     {
       name: 'app-route-rewrite',
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
           // Serve the landing page at /
           if (req.url === '/' || req.url === '/index.html') {
-            req.url = '/index.html'; // Vite serves public/index.html at this path
-            // Actually, Vite serves public files at their path, so /index.html works
-            // But / might not — let's rewrite to /index.html
-            if (req.url === '/') req.url = '/index.html';
+            req.url = '/landing.html';
           }
           // Rewrite /app to /app.html for the React app
           if (req.url === '/app' || req.url === '/app/') {
@@ -39,6 +36,7 @@ export default defineConfig(({ command }) => ({
   build: {
     rollupOptions: {
       input: {
+        landing: path.resolve(__dirname, 'landing.html'),
         app: path.resolve(__dirname, 'app.html'),
       },
     },
