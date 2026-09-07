@@ -76,10 +76,10 @@ export default function FeatureSection({ num, eyebrow, eyebrowColor, title, body
       </div>
       <motion.div
         className="feature__image"
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: 60 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.8, delay: 0.2, ease }}
+        transition={{ duration: 1.4, delay: 0.3, ease }}
       >
         <img src={`${BASE}assets/${image}`} alt="" loading="lazy" />
       </motion.div>

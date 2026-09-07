@@ -6,14 +6,15 @@ const BASE = import.meta.env.BASE_URL;
 export default function Hero() {
   return (
     <section className="hero" id="top">
-      <motion.img
-        className="hero__bg"
-        src={`${BASE}assets/01-city.webp`}
-        alt="Lagos"
+      <motion.picture
+        className="hero__bg-wrap"
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
         transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
-      />
+      >
+        <source media="(max-width: 860px)" srcSet={`${BASE}assets/01-city-m.webp`} />
+        <img className="hero__bg" src={`${BASE}assets/01-city.webp`} alt="Lagos" />
+      </motion.picture>
       <div className="hero__overlay"></div>
       <div className="hero__content">
         {/*<span className="hero__eyebrow">A city in motion</span>*/}

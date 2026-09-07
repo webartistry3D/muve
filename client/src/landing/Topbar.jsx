@@ -1,11 +1,13 @@
 import React from 'react';
 
+const BASE = import.meta.env.BASE_URL;
+
 export default function Topbar() {
   return (
     <nav className="topbar">
       <a href="#top" className="topbar__brand">
-        <span className="topbar__brand-mark">m</span>
-        muve
+        <img src={`${BASE}logo.png`} alt="muve" className="topbar__logo" />
+        <span className="topbar__brand-text">uve</span>
       </a>
       <div className="topbar__links">
         <a href="/about.html">About</a>

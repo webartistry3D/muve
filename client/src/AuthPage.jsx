@@ -46,7 +46,7 @@ export default function AuthPage({ onAuth }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease }}
       >
-        muve
+        <img src="/logo.png" alt="muve" className="auth-logo__img" />
       </motion.div>
       <motion.div
         className="auth-tag"
