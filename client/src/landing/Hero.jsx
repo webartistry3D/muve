@@ -24,7 +24,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
         >
-          Every journey starts with a Muve..
+          Every journey begins with a muve..
         </motion.h2>
         {/*<p className="hero__body">
           From the first light of dawn over the lagoon to the last danfo bus rolling home — this is a city that never stops moving.

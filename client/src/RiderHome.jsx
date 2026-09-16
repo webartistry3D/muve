@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MapView from './MapView.jsx';
-import { api, geocode, reverseGeocode, fmtMoney, fmtKm, fmtMin } from './api.js';
+import { api, geocode, reverseGeocode, fmtMoney, fmtKm, fmtMin, listPlaces, savePlace, deletePlace } from './api.js';
 import { getSocket } from './socket.js';
 import ThemeToggle from './ThemeToggle.jsx';
+import Icon from './Icons.jsx';
 
 const DEFAULT_CENTER = [6.5244, 3.3792]; // Lagos fallback
 
@@ -39,7 +40,43 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
   const [toast, setToast] = useState('');
   const [fitKey, setFitKey] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [places, setPlaces] = useState([]);
+  const [savingPlace, setSavingPlace] = useState(false); // 'pickup' | 'drop' | null
+  const [placeLabel, setPlaceLabel] = useState('');
   const debounceRef = useRef(null);
+
+  // Sheet is only hideable in the initial 'set' / 'choose' phases.
+  // For matching / counter / active / rate it stays visible.
+  const sheetHidden = (phase === 'set' || phase === 'choose') && !sheetOpen;
+
+  const closeSheet = () => {
+    if (phase === 'choose') {
+      // Reset back to the initial 'set' state
+      setDrop(null); setEstimate(null); setProposedFare(null); setUseCustomFare(false); setPhase('set');
+    }
+    setSheetOpen(false);
+  };
+
+  // Load saved places on mount
+  useEffect(() => { listPlaces().then(setPlaces).catch(() => {}); }, []);
+
+  const usePlace = (p) => {
+    const loc = { lat: p.lat, lng: p.lng, addr: p.addr || p.label };
+    setLocation(activeField, loc);
+  };
+
+  const confirmSavePlace = async () => {
+    const target = savingPlace === 'pickup' ? pickup : savingPlace === 'drop' ? drop : null;
+    if (!target) { setSavingPlace(false); return; }
+    const label = placeLabel.trim() || target.addr || 'Saved place';
+    try {
+      const created = await savePlace({ label, lat: target.lat, lng: target.lng, addr: target.addr, type: 'custom' });
+      setPlaces((prev) => [...prev, created]);
+      showToast('Place saved');
+    } catch (e) { showToast(e.message); }
+    setSavingPlace(false); setPlaceLabel('');
+  };
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
 
@@ -202,9 +239,15 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
       const handler = window.PaystackPop.setup({
         key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
         email: user.email,
-        amount: Math.round((trip.fare + (trip.tip || 0)) * 100),
+        amount: d.amountKobo,
         currency: 'NGN',
         ref: payRef,
+        metadata: {
+          custom_fields: [
+            { display_name: 'Trip ID', variable_name: 'trip_id', value: String(trip.id) },
+            { display_name: 'Rider ID', variable_name: 'rider_id', value: String(user.id) },
+          ],
+        },
         onClose: () => setPayingUnpaid(null),
         callback: () => {
           // Verify the payment
@@ -262,6 +305,12 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
         amount: d.amountKobo,
         currency: 'NGN',
         ref: payRef,
+        metadata: {
+          custom_fields: [
+            { display_name: 'Trip ID', variable_name: 'trip_id', value: String(ride.id) },
+            { display_name: 'Rider ID', variable_name: 'rider_id', value: String(user.id) },
+          ],
+        },
         onClose: () => setPaying(false),
         callback: () => {
           setPaymentStatus('pending');
@@ -301,8 +350,8 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
     try { await api(`/api/rides/${ride.id}/rate`, { method: 'POST', body: { rating: stars, tip } }); }
     catch { /* already rated / non-fatal */ }
     setPhase('set'); setRide(null); setDrop(null); setEstimate(null); setStars(5); setTip(0);
-    setPaymentStatus(null); setPayError('');
-    showToast('Thanks for riding with muve!');
+    setPaymentStatus(null); setPayError(''); setSheetOpen(false);
+    showToast('Thanks for riding with Muve!');
   };
 
   // Map layers
@@ -334,7 +383,10 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
         onMapClick={(phase === 'set' || phase === 'choose') ? (ll) => setLocation(activeField, ll) : null}
       />
       <div className="topbar">
-        <div className="brand-chip">muve</div>
+        <div className="brand-logo">
+          <img src="/logo.png" alt="muve" />
+          <span>uve</span>
+        </div>
         <div className="topbar-right">
           {estimate && phase === 'choose' && <div className="chip num">{fmtKm(estimate.distanceM)} · {fmtMin(estimate.durationS)}</div>}
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
@@ -342,7 +394,14 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
       </div>
       {toast && <div className="toast">{toast}</div>}
 
-      <div className="sheet">
+      {sheetHidden && (
+        <button className="go-btn" onClick={() => setSheetOpen(true)}>Go</button>
+      )}
+
+      <div className={`sheet ${sheetHidden ? 'sheet--hidden' : ''}`}>
+        {(phase === 'set' || phase === 'choose') && sheetOpen && (
+          <button className="sheet-close" onClick={closeSheet} aria-label="Close">×</button>
+        )}
         <div className="sheet-grab" />
 
         {(phase === 'set' || phase === 'choose') && (
@@ -361,6 +420,9 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
                 onChange={(e) => { setActiveField('pickup'); setQuery(e.target.value); if (!e.target.value) { setPickup(null); setDrop(null); setEstimate(null); setPhase('set'); } }}
                 onFocus={() => { setActiveField('pickup'); setQuery(pickup?.addr || ''); }}
               />
+              {pickup && (
+                <button className="loc-save" onClick={(e) => { e.stopPropagation(); setSavingPlace('pickup'); setPlaceLabel(''); }} title="Save this place">＋</button>
+              )}
             </div>
             <div className={`loc-input ${activeField === 'drop' ? 'active' : ''}`} onClick={() => { setActiveField('drop'); setQuery(drop?.addr || ''); }}>
               <span className="dot red" />
@@ -370,21 +432,40 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
                 onChange={(e) => { setActiveField('drop'); setQuery(e.target.value); if (!e.target.value) { setDrop(null); setEstimate(null); setPhase('set'); } }}
                 onFocus={() => { setActiveField('drop'); setQuery(drop?.addr || ''); }}
               />
+              {drop && (
+                <button className="loc-save" onClick={(e) => { e.stopPropagation(); setSavingPlace('drop'); setPlaceLabel(''); }} title="Save this place">＋</button>
+              )}
             </div>
-            {suggestions.length > 0 && (
-              <div className="suggestions">
-                {suggestions.map((sug, i) => (
-                  <button key={i} onClick={() => setLocation(activeField, sug)}>📍 {sug.addr}</button>
+            {places.length > 0 && (
+              <div className="places-row">
+                {places.map((p) => (
+                  <button key={p.id} className="place-chip" onClick={() => usePlace(p)}>
+                    <span className="place-chip-label">{p.label}</span>
+                    <span
+                      className="place-chip-del"
+                      onClick={(e) => { e.stopPropagation(); deletePlace(p.id).then(() => setPlaces((prev) => prev.filter((x) => x.id !== p.id))).catch(() => {}); }}
+                      title="Remove"
+                    >×</span>
+                  </button>
                 ))}
               </div>
             )}
-            <div className="hint">Search above or tap the map to set your {activeField === 'pickup' ? 'pickup' : 'destination'}</div>
+            {suggestions.length > 0 && (
+              <div className="suggestions">
+                {suggestions.map((sug, i) => (
+                  <button key={i} onClick={() => setLocation(activeField, sug)}><Icon name="pin" size={16} /> {sug.addr}</button>
+                ))}
+              </div>
+            )}
+            {!savingPlace && suggestions.length === 0 && (
+              <div className="hint">Search above or tap the map to set your {activeField === 'pickup' ? 'pickup' : 'destination'}</div>
+            )}
 
             {phase === 'choose' && estimate && (
               <div style={{ marginTop: 12 }}>
                 <div className="tier-dropdown">
                   <button className="tier-dropdown-trigger" onClick={() => setTierOpen(!tierOpen)}>
-                    <span className="t-icon">{selectedTier?.icon}</span>
+                    <span className="t-icon"><Icon name={selectedTier?.icon} size={30} /></span>
                     <span style={{ flex: 1, textAlign: 'left' }}>
                       <span className="t-name">{selectedTier?.name}</span>
                       <span className="muted" style={{ fontSize: 12 }}> · {selectedTier?.seats} seats</span>
@@ -398,7 +479,7 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
                       {estimate.tiers.map((t) => (
                         <button key={t.key} className={`tier-option ${tier === t.key ? 'active' : ''}`}
                           onClick={() => { setTier(t.key); setTierOpen(false); setUseCustomFare(false); setProposedFare(null); }}>
-                          <span className="t-icon">{t.icon}</span>
+                          <span className="t-icon"><Icon name={t.icon} size={30} /></span>
                           <span style={{ flex: 1, textAlign: 'left' }}>
                             <div className="t-name">{t.name} <span className="muted">· {t.seats} seats</span></div>
                             <div className="t-sub">{t.blurb}</div>
@@ -538,6 +619,26 @@ export default function RiderHome({ user, theme, onToggleTheme, paymentVersion =
           </div>
         )}
       </div>
+
+      {savingPlace && (
+        <div className="modal-overlay" onClick={() => { setSavingPlace(false); setPlaceLabel(''); }}>
+          <div className="save-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="save-modal-title">Save this place</div>
+            <input
+              className="save-modal-input"
+              placeholder="Label (e.g. Home, Work, Aunty's flat)"
+              value={placeLabel}
+              onChange={(e) => setPlaceLabel(e.target.value)}
+              autoFocus
+              onKeyDown={(e) => { if (e.key === 'Enter') confirmSavePlace(); }}
+            />
+            <div className="save-modal-actions">
+              <button className="btn btn-light" onClick={() => { setSavingPlace(false); setPlaceLabel(''); }}>Cancel</button>
+              <button className="btn btn-dark" onClick={confirmSavePlace}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

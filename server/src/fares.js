@@ -1,9 +1,9 @@
 // Fare engine: tiers, haversine distance, surge pricing, estimates.
 
 export const TIERS = {
-  muvex:  { key: 'muvex',  name: 'MuveX',     seats: 4, base: 788, perKm: 248, perMin: 45, minFare: 2250, icon: '🚗', blurb: 'Affordable, everyday rides' },
-  muvexl: { key: 'muvexl', name: 'MuveXL',    seats: 6, base: 1125, perKm: 360, perMin: 63, minFare: 3375, icon: '🚙', blurb: 'Extra room for groups' },
-  black:  { key: 'black',  name: 'Muve Black', seats: 4, base: 1800, perKm: 563, perMin: 90, minFare: 4500, icon: '🏴', blurb: 'Premium rides, top drivers' },
+  muvex:  { key: 'muvex',  name: 'MuveX',     seats: 4, base: 788, perKm: 248, perMin: 45, minFare: 2250, icon: 'carfront', blurb: 'Affordable, everyday rides' },
+  muvexl: { key: 'muvexl', name: 'MuveXL',    seats: 6, base: 1125, perKm: 360, perMin: 63, minFare: 3375, icon: 'car', blurb: 'Extra room for groups' },
+  black:  { key: 'black',  name: 'Muve Black', seats: 4, base: 1800, perKm: 563, perMin: 90, minFare: 4500, icon: 'luxury', blurb: 'Premium rides, top drivers' },
 };
 
 export function haversineM(lat1, lng1, lat2, lng2) {

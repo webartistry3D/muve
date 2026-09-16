@@ -167,7 +167,10 @@ export default function DriverHome({ user, theme, onToggleTheme }) {
     <>
       <MapView center={center} markers={markers} route={ride?.route || null} fitKey={fitKey} theme={theme} onMapClick={onMapClick} />
       <div className="topbar">
-        <div className="brand-chip">muve</div>
+        <div className="brand-logo">
+          <img src="/logo.png" alt="muve" />
+          <span>uve</span>
+        </div>
         <div className="topbar-right">
           <button className={`status-chip ${online ? 'online' : 'offline'}`} onClick={toggleOnline}>
             <span className="status-dot" />

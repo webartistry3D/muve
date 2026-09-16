@@ -5,10 +5,10 @@ export default function Request() {
   return (
     <FeatureSection
       //num="03"
-      //eyebrow="Tap. Where to?"
+      eyebrow="Tap. Where to?"
       eyebrowColor="#0E8345"
-      title={<>It starts with a <span className="highlight-green">Pin</span>.</>}
-      body="Set your pickup, drop a destination, and the city starts listening. One tap is all it takes."
+      title={<>Set your <span className="highlight-green">Destination</span>.</>}
+      body="Add your pickup, drop a destination, and the city starts listening. One tap is all it takes."
       tags={['Address search', 'Tap-to-set', 'Instant estimate']}
       //cta="Set your pin"
       image="03-request.webp"

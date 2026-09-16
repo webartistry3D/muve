@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api, fmtMoney, fmtKm } from './api.js';
 import Icon from './Icons.jsx';
+import ThemeToggle from './ThemeToggle.jsx';
 
 const ID_TYPES = [
   { value: 'nin', label: 'NIN (National ID)' },
@@ -11,7 +12,7 @@ const ID_TYPES = [
 
 const NG_STATES = ['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','FCT','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara'];
 
-export default function Profile({ user, onLogout, onPaymentUpdate }) {
+export default function Profile({ user, onLogout, onPaymentUpdate, theme, onToggleTheme }) {
   const [tab, setTab] = useState('profile');
 
   // KYC state
@@ -76,6 +77,12 @@ export default function Profile({ user, onLogout, onPaymentUpdate }) {
         amount: d.amountKobo,
         currency: 'NGN',
         ref: payRef,
+        metadata: {
+          custom_fields: [
+            { display_name: 'Trip ID', variable_name: 'trip_id', value: String(trip.id) },
+            { display_name: 'Rider ID', variable_name: 'rider_id', value: String(user.id) },
+          ],
+        },
         onClose: () => setPayingUnpaid(null),
         callback: () => {
           api('/api/payments/paystack/verify', { method: 'POST', body: { reference: payRef } })
@@ -108,7 +115,10 @@ export default function Profile({ user, onLogout, onPaymentUpdate }) {
   return (
     <div className="page">
       {payToast && <div className="toast">{payToast}</div>}
-      <h2>Account</h2>
+      <div className="page-header">
+        <h2>Account</h2>
+        <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+      </div>
       <div className="card">
         <div className="row">
           <div className="avatar" style={{ width: 56, height: 56, fontSize: 22 }}>{user.name[0]}</div>

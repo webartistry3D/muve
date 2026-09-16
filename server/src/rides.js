@@ -210,16 +210,20 @@ export function registerRideRoutes(app) {
     res.json({ ride: rideToJson(updated) });
   });
 
-  // Driver earnings dashboard (driver earns 90% of fare + 100% of tip)
+  // Driver earnings dashboard — uses actual settled amounts from payments table
   app.get('/api/driver/earnings', authRequired, (req, res) => {
     if (req.user.role !== 'driver') return res.status(403).json({ error: 'Drivers only' });
     const all = db.prepare(
       "SELECT * FROM rides WHERE driver_id = ? AND status = 'completed' ORDER BY id DESC"
     ).all(req.user.id);
-    // Driver earnings = fare × 90% + tip (Muve retains 10% commission on fare)
-    const sum = (rows) => Math.round(rows.reduce((s, r) => s + r.fare * 0.90 + r.tip, 0) * 100) / 100;
+    // Get actual settled earnings from payments table (driver_earnings_kobo)
+    const paidTrips = db.prepare(
+      "SELECT trip_id, driver_earnings_kobo, paid_at FROM payments WHERE driver_id = ? AND status = 'PAID' ORDER BY id DESC"
+    ).all(req.user.id);
+    const earningsByTrip = new Map(paidTrips.map((p) => [p.trip_id, p.driver_earnings_kobo / 100]));
     const today = new Date().toISOString().slice(0, 10);
     const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
+    const sum = (rows) => Math.round(rows.reduce((s, r) => s + (earningsByTrip.get(r.id) || 0), 0) * 100) / 100;
     res.json({
       today: sum(all.filter((r) => (r.completed_at || '').slice(0, 10) === today)),
       week: sum(all.filter((r) => (r.completed_at || '') >= weekAgo)),
@@ -301,5 +305,15 @@ export function registerRideRoutes(app) {
       .sort((a, b) => a.dist - b.dist)
       .slice(0, 12);
     res.json({ drivers: near });
+  });
+
+  // App feedback / rating
+  app.post('/api/feedback', authRequired, (req, res) => {
+    const { rating, message } = req.body || {};
+    const stars = Math.min(5, Math.max(1, Math.round(Number(rating) || 5)));
+    if (!rating) return res.status(400).json({ error: 'Rating required' });
+    db.prepare('INSERT INTO app_feedback (user_id, rating, message) VALUES (?, ?, ?)')
+      .run(req.user.id, stars, (message || '').trim() || null);
+    res.json({ ok: true });
   });
 }

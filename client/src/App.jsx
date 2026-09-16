@@ -89,9 +89,9 @@ export default function App() {
         <div style={{ position: 'absolute', inset: 0, visibility: tab === 'home' ? 'visible' : 'hidden' }}>
           {isDriver ? <DriverHome user={user} theme={theme} onToggleTheme={toggleTheme} /> : <RiderHome user={user} theme={theme} onToggleTheme={toggleTheme} paymentVersion={paymentVersion} />}
         </div>
-        {tab === 'activity' && (isDriver ? <Earnings /> : <History />)}
-        {tab === 'account' && <Profile user={user} onLogout={logout} onPaymentUpdate={() => setPaymentVersion((v) => v + 1)} />}
-        {tab === 'settings' && <Settings user={user} onLogout={logout} />}
+        {tab === 'activity' && (isDriver ? <Earnings user={user} theme={theme} onToggleTheme={toggleTheme} /> : <History theme={theme} onToggleTheme={toggleTheme} />)}
+        {tab === 'account' && <Profile user={user} onLogout={logout} theme={theme} onToggleTheme={toggleTheme} onPaymentUpdate={() => setPaymentVersion((v) => v + 1)} />}
+        {tab === 'settings' && <Settings user={user} onLogout={logout} theme={theme} onToggleTheme={toggleTheme} />}
       </div>
       <nav className="tabbar">
         {tabs.map(([key, iconName, label]) => (

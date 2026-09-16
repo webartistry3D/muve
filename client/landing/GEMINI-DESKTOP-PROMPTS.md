@@ -36,7 +36,7 @@ Photorealistic street-level view of a bustling Lagos neighborhood. Market stalls
 
 **File:** `03-request.webp` / `03-request-m.webp`
 
-Photorealistic close-up of a young Nigerian person standing on a Lagos street corner, holding a smartphone at chest height. The phone screen is blurred but emits a soft green glow. They're looking at the screen with a slight smile. Behind them, the street is softly out of focus — market stalls, a parked car, warm afternoon light. The green glow from the phone illuminates their face gently. Edges fade to cream `#F4F1EC`. No text, no visible app UI, no logos.
+Photorealistic close-up of a young Nigerian professional dressed casully, seated under a small busstop shelter in a Lagos street corner, holding a smartphone at chest height. The phone screen is blurred. The young Nigerian is looking at the screen with a slight smile. Behind them, the street is softly out of focus — market stalls, a parked car, warm afternoon light. Edges fade to cream `#F4F1EC`. No text, no visible app UI, no logos.
 
 ## Image 4: The Match
 
@@ -48,7 +48,7 @@ Photorealistic view of a Lagos street at dusk with soft green light pulses overl
 
 **File:** `05-driver.webp` / `05-driver-m.webp`
 
-Photorealistic shot of a Nigerian man in his 30s opening the door of a clean white Toyota Corolla parked on a Lagos street at dusk. He's dressed casually — a neat polo shirt. The car's headlights are on, casting warm light on the road. A phone on the dashboard glows green. The scene feels professional and trustworthy. Warm evening light, shallow depth of field. Edges fade to cream `#F4F1EC`. No text, no logos.
+Photorealistic shot of a Nigerian man in his 30s opening the door of his clean white Toyota Corolla parked on a Lagos street at dusk. He's dressed casually — a neat polo shirt. The car's headlights are on, casting warm light on the road. A phone on the dashboard glows green. The scene feels professional and trustworthy. Warm evening light, shallow depth of field. Edges fade to cream `#F4F1EC`. No text, no logos.
 
 ## Image 6: The Ride
 
@@ -66,19 +66,19 @@ Photorealistic close-up of a hand holding a smartphone, screen blurred but showi
 
 **File:** `08-arrival.webp` / `08-arrival-m.webp`
 
-Photorealistic shot of a passenger stepping out of a white car onto a Lagos street in the evening. The car door is open, warm streetlights glow overhead, the destination is a nice building entrance with plants. The passenger looks satisfied. The driver is visible through the windshield, nodding. Warm, golden evening light. A sense of completion and satisfaction. Edges fade to cream `#F4F1EC`. No text, no logos.
+Photorealistic shot of a passenger just about to step out of a white Toyota Corolla. The vehicle is parked beside his home destination, an urban Lagos settlement in the evening. Warm streetlights glow overhead, the destination is a nice building entrance with plants. The passenger looks satisfied. The driver also looks satisfied and is visible through the windshield, nodding. Warm, golden evening light. A sense of completion and satisfaction. Edges fade to cream `#F4F1EC`. No text, no logos.
 
 ## Image 9: Driver Earnings
 
 **File:** `09-earnings.webp` / `09-earnings-m.webp`
 
-Photorealistic shot of a Nigerian driver sitting in his parked car during a break, reviewing a phone that glows with a soft green and amber light (dashboard/earnings view, blurred). On the passenger seat beside him is a notebook and a fuel receipt. The scene conveys financial awareness and professionalism. Warm afternoon light through the windshield. Shallow depth of field. Edges fade to cream `#F4F1EC`. No text, no readable numbers, no logos.
+Photorealistic shot of a Nigerian driver sitting on the driver seat in his parked car during a break, reviewing his earnings and expenses via his smartphone. On the passenger seat beside him is a notebook and a fuel receipt. The scene conveys financial awareness and professionalism. Warm afternoon light through the windshield. Shallow depth of field. Edges fade to cream `#F4F1EC`. No text, no readable numbers, no logos.
 
 ## Image 10: Closing — Lagos at Dusk
 
 **File:** `10-closing.webp` / `10-closing-m.webp`
 
-Photorealistic wide aerial view of Lagos at dusk — the city lights are coming on, the lagoon reflects golden and amber light, bridges are lit up, the skyline glows. A few car headlights trace warm lines through the streets. The sky is a deep gradient from warm amber near the horizon to soft dark blue above. The image feels aspirational and proud — this is a city that moves. Edges fade to cream `#F4F1EC`. No text, no logos.
+Photorealistic wide aerial view of Lagos at dusk — the city lights are coming on, the lagoon reflects golden and amber light, bridges are lit up, the skyline glows. A few car headlights trace warm lines through the streets. The sky is a deep gradient from warm amber near the horizon to soft dark blue above. The image feels aspirational and proud — this is a city that moves. Edges fade to cream `#F4F1EC`. No text, no logos.1920x1080px (16:9).  
 
 ---
 

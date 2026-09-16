@@ -9,6 +9,9 @@ import { Server } from 'socket.io';
 import { registerRoutes as registerAuthRoutes } from './auth.js';
 import { registerRideRoutes } from './rides.js';
 import { registerPaystackWebhook, registerPaymentRoutes } from './payments.js';
+import { registerPlaceRoutes } from './places.js';
+import { registerLandmarkRoutes, seedLandmarksIfEmpty } from './landmarks.js';
+import { registerWalletRoutes } from './wallet.js';
 import { registerSockets } from './sockets.js';
 import { setIO } from './state.js';
 import { startSimEngine } from './sim.js';
@@ -31,6 +34,10 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'muve', time
 registerAuthRoutes(app);
 registerRideRoutes(app);
 registerPaymentRoutes(app);
+registerPlaceRoutes(app);
+registerLandmarkRoutes(app);
+registerWalletRoutes(app);
+seedLandmarksIfEmpty();
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:4321'], credentials: true } });

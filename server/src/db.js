@@ -80,6 +80,13 @@ if (!rideCols.includes('proposed_fare')) db.exec('ALTER TABLE rides ADD COLUMN p
 if (!rideCols.includes('suggested_fare')) db.exec('ALTER TABLE rides ADD COLUMN suggested_fare REAL');
 if (!rideCols.includes('fare_status')) db.exec("ALTER TABLE rides ADD COLUMN fare_status TEXT DEFAULT 'agreed'");
 
+// Paystack dedicated virtual account fields on users + commission cycle timestamp
+const userCols = db.prepare("PRAGMA table_info(users)").all().map((c) => c.name);
+if (!userCols.includes('paystack_customer_code')) db.exec('ALTER TABLE users ADD COLUMN paystack_customer_code TEXT');
+if (!userCols.includes('paystack_account_number')) db.exec('ALTER TABLE users ADD COLUMN paystack_account_number TEXT');
+if (!userCols.includes('paystack_bank_name')) db.exec('ALTER TABLE users ADD COLUMN paystack_bank_name TEXT');
+if (!userCols.includes('commission_cycle_started_at')) db.exec('ALTER TABLE users ADD COLUMN commission_cycle_started_at TEXT');
+
 db.exec(`
 CREATE TABLE IF NOT EXISTS expenses (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -108,6 +115,110 @@ CREATE TABLE IF NOT EXISTS payments (
 
 CREATE INDEX IF NOT EXISTS idx_payments_trip ON payments(trip_id);
 CREATE INDEX IF NOT EXISTS idx_payments_rider ON payments(rider_id);
+`);
+
+// Saved places (rider-created quick-pick pins: Home, Work, custom)
+db.exec(`
+CREATE TABLE IF NOT EXISTS saved_places (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  label TEXT NOT NULL,
+  lat REAL NOT NULL,
+  lng REAL NOT NULL,
+  addr TEXT,
+  type TEXT NOT NULL DEFAULT 'custom',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_saved_places_user ON saved_places(user_id);
+`);
+
+// Curated Lagos landmarks / estates / POIs for local search (overrides Mapbox gaps)
+db.exec(`
+CREATE TABLE IF NOT EXISTS landmarks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  aliases TEXT,
+  lat REAL NOT NULL,
+  lng REAL NOT NULL,
+  area TEXT,
+  category TEXT NOT NULL DEFAULT 'landmark',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_landmarks_name ON landmarks(name);
+CREATE INDEX IF NOT EXISTS idx_landmarks_area ON landmarks(area);
+`);
+
+// Driver wallets + transaction history
+db.exec(`
+CREATE TABLE IF NOT EXISTS wallets (
+  user_id INTEGER PRIMARY KEY REFERENCES users(id),
+  balance REAL NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  type TEXT NOT NULL,
+  amount REAL NOT NULL,
+  description TEXT,
+  ride_id INTEGER,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_wallet_tx_user ON wallet_transactions(user_id);
+`);
+
+// Driver bank accounts for withdrawals (up to 3 per driver)
+// Drop old single-account table if it exists (schema changed from user_id PK to id PK)
+const oldBankCols = db.prepare("PRAGMA table_info(driver_bank_accounts)").all();
+if (oldBankCols.length && !oldBankCols.some((c) => c.name === 'id')) {
+  db.exec('DROP TABLE IF EXISTS driver_bank_accounts');
+}
+db.exec(`
+CREATE TABLE IF NOT EXISTS driver_bank_accounts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  bank_code TEXT NOT NULL,
+  bank_name TEXT NOT NULL,
+  account_number TEXT NOT NULL,
+  account_name TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+`);
+db.exec('CREATE INDEX IF NOT EXISTS idx_bank_acct_user ON driver_bank_accounts(user_id);');
+
+// Add paystack_recipient_code to bank accounts if missing
+const bankCols = db.prepare("PRAGMA table_info(driver_bank_accounts)").all().map((c) => c.name);
+if (!bankCols.includes('paystack_recipient_code')) db.exec('ALTER TABLE driver_bank_accounts ADD COLUMN paystack_recipient_code TEXT');
+
+// Withdrawals table — tracks Paystack transfer status
+db.exec(`
+CREATE TABLE IF NOT EXISTS withdrawals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  amount REAL NOT NULL,
+  bank_name TEXT,
+  account_number TEXT,
+  paystack_transfer_code TEXT,
+  paystack_recipient_code TEXT,
+  status TEXT NOT NULL DEFAULT 'PENDING',
+  reference TEXT UNIQUE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_withdrawals_user ON withdrawals(user_id);
+`);
+
+// App feedback / ratings from users
+db.exec(`
+CREATE TABLE IF NOT EXISTS app_feedback (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  rating INTEGER NOT NULL,
+  message TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_feedback_user ON app_feedback(user_id);
 `);
 
 export default db;
