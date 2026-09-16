@@ -7,7 +7,7 @@ export default function Topbar() {
     <nav className="topbar">
       <a href="#top" className="topbar__brand">
         <img src={`${BASE}logo.png`} alt="muve" className="topbar__logo" />
-        <span className="topbar__brand-text">uve</span>
+        <span className="topbar__brand-text">u v e</span>
       </a>
       <div className="topbar__links">
         <a href="/about.html">About</a>

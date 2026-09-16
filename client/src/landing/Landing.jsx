@@ -28,7 +28,7 @@ export default function Landing() {
       </div>
       <ClosingCTA />
       <footer className="footer">
-        <strong>Muve</strong> — Built for Nigeria
+        <strong>M u v e</strong> — Built for Nigeria
       </footer>
     </>
   );
