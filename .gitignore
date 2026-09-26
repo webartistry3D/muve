@@ -9,3 +9,12 @@ server/muve.db-wal
 client/.env
 .env
 server/.env
+
+client/landing
+MUVE_BANK_TRANSFER_PAYMENT_FLOW.md
+MUVE_TRIP_SETTLEMENT_IMPL.md
+MUVE_WALLET_IMPLEMENTATION.md
+muve-paystack-trip-settlement.md
+INDRIVE_FARE_IMPLEMENTATION.md
+bolt-indrive-research.md
+client/landing/GEMINI-DESKTOP-PROMPTS.md
